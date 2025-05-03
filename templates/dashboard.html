@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center min-vh-75">
+  <div class="card shadow p-4" style="width: 100%; max-width: 800px;">
+
+    <h2 class="mb-4 text-center">Welcome, {{ user.member_name }}</h2>
+
+    <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mb-4">
+        <a href="{{ url_for('calendar') }}" class="btn btn-primary">Go to Calendar</a>
+        <a href="{{ url_for('settings') }}" class="btn btn-secondary">Settings</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Member Details</h4>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <p><strong>Member Name:</strong> {{ user.member_name }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Member ID:</strong> {{ user.member_id }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Unit Details</h4>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <p><strong>Unit Name:</strong> {{ user.unit_name }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Unit Section:</strong> {{ user.unit_section }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Unit Roles:</strong> {{ user.unit_roles }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Unit ID:</strong> {{ user.unit_id }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Group Details</h4>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <p><strong>Group Name:</strong> {{ user.group_name }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Group Roles:</strong> {{ user.group_roles }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Group ID:</strong> {{ user.group_id }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Unit Members</h4>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            {% for member in unit_members %}
+              <div class="col-md-6 mb-2">
+                <strong>{{ member.first_name }} {{ member.last_name }}</strong><br>
+                <small class="text-muted">ID: {{ member.id }}</small>
+              </div>
+            {% else %}
+              <div class="col-12 text-muted">No unit members found.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Group Members</h4>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            {% for member in group_members %}
+              <div class="col-md-6 mb-2">
+                <strong>{{ member.first_name }} {{ member.last_name }}</strong><br>
+                <small class="text-muted">ID: {{ member.id }}</small>
+              </div>
+            {% else %}
+              <div class="col-12 text-muted">No group members found.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+{% endblock %}

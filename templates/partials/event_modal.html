@@ -1,0 +1,25 @@
+<!-- View Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <input type="hidden" id="editEventId">
+        <h5 class="modal-title" id="eventModalLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Start:</strong> <span id="eventStart"></span></p>
+        <p><strong>End:</strong> <span id="eventEnd"></span></p>
+        <p><strong>Status:</strong> <span id="eventStatus"></span></p>
+        <p><strong>Challenge Area:</strong> <span id="eventChallenge"></span></p>
+        <p><strong>Invitee Name:</strong> <span id="eventInvitee"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button id="editEventBtn" class="btn btn-primary">
+          <span id="editBtnText">Edit / View</span>
+          <span id="editBtnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

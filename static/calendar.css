@@ -1,0 +1,65 @@
+/* Calendar container */
+#calendar {
+  position: relative; /* important for absolute spinner */
+  font-size: 0.8rem;
+  max-width: 100%;
+  margin: auto;
+}
+
+/* FullCalendar day frame */
+.fc .fc-daygrid-day-frame {
+  padding: 2px !important;
+}
+
+/* FullCalendar day */
+.fc .fc-daygrid-day {
+  overflow: visible;
+}
+
+/* FullCalendar event styles */
+#calendar .fc-event,
+#calendar .fc-daygrid-event,
+#calendar .fc-h-event {
+  background-color: #e9ecef !important;
+  border: none !important;
+}
+
+#calendar .fc-event-title,
+#calendar .fc-event-main {
+  color: #0d6efd !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+/* FullCalendar toolbar */
+.fc-toolbar {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Hover on day */
+.fc-daygrid-day:hover {
+  background-color: #f0f8ff;
+  cursor: pointer;
+}
+
+/* Loading Spinner */
+.calendar-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Event Calendar{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="{{ url_for('static', filename='calendar.css') }}">
+{% endblock %}
+
+{% block content %}
+<h4>Event Calendar</h4>
+
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#testModal">
+    Open Member Test Modal
+</button>
+
+<div id="calendarLoader" class="text-center mb-2" style="display: none;">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<div id="calendar"></div>
+
+<div id="calendarError" class="alert alert-danger d-none" role="alert">
+  Could not load events. Your session may have expired. Please log out and log back in.
+</div>
+
+{% include "partials/event_modal.html" %}
+{% include "partials/edit_event_modal.html" %}
+{% include "partials/test_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script id="user-data" type="application/json">
+  {{ user | tojson | safe }}
+</script>
+
+<script id="members-data" type="application/json">
+  {{ {
+    'unit_members': unit_members,
+    'group_members': group_members
+  } | tojson | safe }}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="{{ url_for('static', filename='calendar.js') }}"></script>
+{% endblock %}

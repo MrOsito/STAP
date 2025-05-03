@@ -1,0 +1,76 @@
+<!-- Editable Event Modal -->
+<div class="modal fade" id="eventEditModal" tabindex="-1" aria-labelledby="eventEditModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <form class="modal-content">
+      <div class="modal-body py-2 px-3">
+        <div class="row g-3">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="eventEditModalLabel">Edit Event</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+          <div id="readOnlyReason" class="alert alert-warning small d-none" role="alert"></div>
+
+          <div class="col-12">
+            <label for="editTitle" class="form-label small mb-0">Title</label>
+            <input type="text" class="form-control form-control-sm" id="editTitle" maxlength="100">
+          </div>
+
+          <div class="col-12">
+            <label for="editDescription" class="form-label small mb-0">Description</label>
+            <textarea class="form-control form-control-sm" id="editDescription" rows="2" maxlength="500"></textarea>
+          </div>
+
+          <div class="col-md-4">
+            <label for="editLocation" class="form-label small mb-1">Location</label>
+            <input type="text" class="form-control form-control-sm" id="editLocation">
+          </div>
+
+          <div class="col-md-4">
+            <label for="editStart" class="form-label small mb-1">Start Datetime</label>
+            <input type="datetime-local" class="form-control form-control-sm" id="editStart">
+          </div>
+
+          <div class="col-md-4">
+            <label for="editEnd" class="form-label small mb-1">End Datetime</label>
+            <input type="datetime-local" class="form-control form-control-sm" id="editEnd">
+          </div>
+
+          <div class="col-md-6">
+            <label for="editChallengeArea" class="form-label small mb-1">Challenge Areas</label>
+            <select class="form-select form-select-sm" id="editChallengeArea"></select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="editScoutMethod" class="form-label small mb-1">Scout Method Elements</label>
+            <select class="form-select form-select-sm" id="editScoutMethod" multiple></select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="editOrganiser" class="form-label small mb-1">Organiser(s)</label>
+            <select class="form-select form-select-sm" id="editOrganiser" multiple></select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="editLeaders" class="form-label small mb-1">Leader Members</label>
+            <select class="form-select form-select-sm" id="editLeaders" multiple></select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="editAssistants" class="form-label small mb-1">Assistant Members</label>
+            <select class="form-select form-select-sm" id="editAssistants" multiple></select>
+          </div>
+
+        </div>
+      </div>
+
+
+      <div class="modal-footer py-2 px-3">
+          <button type="button" class="btn btn-danger me-auto d-none" id="deleteEventBtn">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveChangesBtn">Save Changes</button>
+        </div>
+    </form>
+  </div>
+</div>
