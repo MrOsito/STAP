@@ -2,3 +2,4 @@ flask
 boto3
 httpx
 gunicorn
+quart
