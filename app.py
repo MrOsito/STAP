@@ -42,8 +42,8 @@ def load_user_context():
         g.context = {}
 
 # --- Routes ---
-@app.route("/", methods=["GET", "POST"])
-def login():
+@app.route("/login", methods=["GET", "POST"])
+def login_route():
     if request.method == "POST":
         import boto3
         branch = request.form["branch"]
