@@ -77,7 +77,7 @@ def login():
                 "last_active": datetime.utcnow().isoformat(),
             }
             session.permanent = True
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("dashboard.dashboard"))
 
         except Exception as e:
             flash(f"Login failed: {str(e)}", "danger")
