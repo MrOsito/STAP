@@ -13,7 +13,7 @@ from services.api_helpers import (
 from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.event_routes import event_bp
-
+from utils.auth_utils import login_required
 
 # --- App Setup ---
 app = Flask(__name__)
@@ -29,16 +29,6 @@ AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
 MEMBERS_URL = "https://members.terrain.scouts.com.au"
 EVENTS_API_URL = "https://events.terrain.scouts.com.au"
 
-
-# --- Decorators ---
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if not session.get("user"):
-            flash("Please log in to continue.", "warning")
-            return redirect(url_for("login"))
-        return f(*args, **kwargs)
-    return decorated
 
 # --- Before Request ---
 @app.before_request

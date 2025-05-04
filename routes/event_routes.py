@@ -1,6 +1,7 @@
 from flask import request, session, jsonify
 from services.api_helpers import create_auth_header, api_error, update_event, delete_event
 from urllib.parse import urljoin
+from utils.auth_utils import login_required
 import httpx
 import time
 
