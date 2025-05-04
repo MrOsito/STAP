@@ -3,3 +3,4 @@ boto3
 httpx
 quart
 hypercorn
+uvloop
