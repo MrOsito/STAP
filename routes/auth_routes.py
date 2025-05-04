@@ -6,7 +6,7 @@ auth_bp = Blueprint('auth', __name__)
 def logout():
     session.clear()
     flash("You have been logged out.", "info")
-    return redirect(url_for("login"))
+    return redirect(url_for("auth.login_route"))
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -48,6 +48,6 @@ def login_route():
 
         except Exception as e:
             flash(f"Login failed: {str(e)}", "danger")
-            return redirect(url_for("login"))
+            return redirect(url_for("auth.login_route"))
 
     return render_template("login.html")
