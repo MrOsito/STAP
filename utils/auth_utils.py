@@ -5,7 +5,8 @@ from flask import session, redirect, url_for
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if "profile" not in session:
-            return redirect(url_for("auth.login_route"))
+        if "user" not in session:
+            return redirect(url_for("auth.login_route"))  # FIXED
         return f(*args, **kwargs)
     return decorated
+
