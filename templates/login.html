@@ -84,7 +84,7 @@
       {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('login') }}" autocomplete="on">
+    <form method="POST" action="{{ url_for('auth.login_route') }}" autocomplete="on">
       <div class="mb-3">
         <label for="branch" class="form-label">Select Branch</label>
         <select name="branch" id="branch" class="form-select" required>
