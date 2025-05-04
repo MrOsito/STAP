@@ -11,10 +11,13 @@ from services.api_helpers import (
     get_user_context, get_member_events, update_event, delete_event
 )
 from routes.auth_routes import auth_bp
+from routes.dashboard_routes import dashboard_bp
+
 
 # --- App Setup ---
 app = Flask(__name__)
 app.register_blueprint(auth_bp)
+app.register_blueprint(dashboard_bp)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.permanent_session_lifetime = timedelta(minutes=30)
 
@@ -90,11 +93,6 @@ def login():
 
     return render_template("login.html")
 
-
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    return render_template("dashboard.html", **g.context)
 
 @app.route("/calendar")
 @login_required
