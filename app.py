@@ -10,10 +10,11 @@ from services.api_helpers import (
     create_auth_header, api_error, get_profiles, fetch_members,
     get_user_context, get_member_events, update_event, delete_event
 )
-
+from routes.auth_routes import auth_bp
 
 # --- App Setup ---
 app = Flask(__name__)
+app.register_blueprint(auth_bp)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.permanent_session_lifetime = timedelta(minutes=30)
 
@@ -89,12 +90,6 @@ def login():
 
     return render_template("login.html")
 
-@app.route("/logout")
-@login_required
-def logout():
-    session.clear()
-    flash("You have been logged out.", "info")
-    return redirect(url_for("login"))
 
 @app.route("/dashboard")
 @login_required
