@@ -1,4 +1,4 @@
-from flask import request, session, jsonify
+from flask import request, session, jsonify, Blueprint
 from services.api_helpers import create_auth_header, api_error, update_event, delete_event
 from urllib.parse import urljoin
 from utils.auth_utils import login_required
@@ -6,7 +6,6 @@ import httpx
 import time
 
 event_bp = Blueprint("event", __name__)
-
 
 @event_bp.route("/event/<event_id>")
 @login_required
