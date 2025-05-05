@@ -69,13 +69,13 @@ def delete_event_route(event_id):
 @event_bp.route("/events")
 @login_required
 def fetch_events_by_range():
-    console.log("I'm dropping into fetch by range")
+    print("I'm dropping into fetch by range")
  
     start = request.args.get("start")
     end = request.args.get("end")
 
-    console.log("This is start ", start)
-    console.log("This is end ", end)
+    print(f"This is start {start)")
+    print(f"This is start {end)")
 
     if not start or not end:
         return jsonify([])
@@ -83,8 +83,8 @@ def fetch_events_by_range():
         start_iso = isoparse(start).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
         end_iso = isoparse(end).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
-        console.log("This is start_iso ", start_iso)
-        console.log("This is end_iso ", end_iso)
+        print(f"This is start_iso {start_iso}")
+        print(f"This is end_iso {end_iso}")
 
         events = get_member_events(session["user"]["member_id"], session["user"]["id_token"], start_iso, end_iso)
 
