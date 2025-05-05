@@ -1,11 +1,11 @@
 from flask import request, session, jsonify, Blueprint
-from services.api_helpers import create_auth_header, api_error, update_event, delete_event
 from urllib.parse import urljoin
 from utils.auth_utils import login_required
 import httpx
 import time
 
 from config import EVENTS_API_URL
+from services.api_helpers import create_auth_header, api_error, update_event, delete_event, get_member_events
 
 
 event_bp = Blueprint("event", __name__)
