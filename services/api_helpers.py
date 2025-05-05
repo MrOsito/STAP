@@ -2,9 +2,7 @@ import httpx
 from flask import session
 from datetime import datetime, timedelta
 from urllib.parse import urljoin
-
-MEMBERS_URL = "https://members.terrain.scouts.com.au"
-EVENTS_API_URL = "https://events.terrain.scouts.com.au"
+from config import MEMBERS_URL, EVENTS_API_URL
 
 def create_auth_header(id_token, content_type=None):
     headers = {"Authorization": id_token}

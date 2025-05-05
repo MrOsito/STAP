@@ -1,5 +1,6 @@
 from flask import Blueprint, session, redirect, url_for, flash, request, render_template
 from config import AWS_REGION, CLIENT_ID
+from services.api_helpers import get_profiles
 
 auth_bp = Blueprint('auth', __name__)
 
