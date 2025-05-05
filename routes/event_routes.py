@@ -86,11 +86,12 @@ def fetch_events_by_range():
 
         print(f"This is start_iso {start_iso}", flush=True)
         print(f"This is end_iso {end_iso}", flush=True)
+        print(session["user"]["member_id"], flush=True)
 
         events = get_member_events(session["user"]["member_id"], session["user"]["id_token"], start_iso, end_iso)
 
         print(f"[DEBUG] Events size: {len(str(events))} characters", flush=True)
-        
+
         formatted = [{
             "id": e.get("id", ""),
             "start": e.get("start_datetime", ""),

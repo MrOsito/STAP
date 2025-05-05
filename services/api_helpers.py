@@ -55,13 +55,13 @@ def get_user_context(id_token, unit_id, group_id):
     }
 
 def get_member_events(user_id, id_token, start=None, end=None):
-    console.log("I'm dropping into get_member_events")
+    print("I'm dropping into get_member_events", flush=True)
     now = datetime.utcnow()
     start = start or (now - timedelta(days=90)).isoformat() + "Z"
     end = end or (now + timedelta(days=90)).isoformat() + "Z"
 
     url = urljoin(EVENTS_API_URL, f"/members/{user_id}/events?start_datetime={start}&end_datetime={end}")
-    console.log("This is the url ", url)
+    print(f"This is the url {url}", flush=True)
     headers = create_auth_header(id_token, "application/json")
     try:
         with httpx.Client(timeout=10.0) as client:
