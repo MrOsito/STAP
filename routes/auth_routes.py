@@ -1,4 +1,5 @@
 from flask import Blueprint, session, redirect, url_for, flash, request, render_template
+from config import AWS_REGION, CLIENT_ID
 
 auth_bp = Blueprint('auth', __name__)
 

@@ -14,6 +14,7 @@ from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.event_routes import event_bp
 from utils.auth_utils import login_required
+from config import MEMBERS_URL, EVENTS_API_URL
 
 # --- App Setup ---
 app = Flask(__name__)
@@ -22,13 +23,6 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(event_bp)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.permanent_session_lifetime = timedelta(minutes=30)
-
-# --- External Services ---
-CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "6v98tbc09aqfvh52fml3usas3c")
-AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
-MEMBERS_URL = "https://members.terrain.scouts.com.au"
-EVENTS_API_URL = "https://events.terrain.scouts.com.au"
-
 
 # --- Before Request ---
 @app.before_request
