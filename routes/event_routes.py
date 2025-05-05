@@ -5,6 +5,9 @@ from utils.auth_utils import login_required
 import httpx
 import time
 
+from config import EVENTS_API_URL
+
+
 event_bp = Blueprint("event", __name__)
 
 @event_bp.route("/event/<event_id>")
