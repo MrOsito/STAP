@@ -13,6 +13,7 @@ from services.api_helpers import (
 from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.event_routes import event_bp
+from routes.member_routes import member_bp
 from utils.auth_utils import login_required
 from config import MEMBERS_URL, EVENTS_API_URL
 
@@ -21,6 +22,7 @@ app = Flask(__name__)
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(event_bp)
+app.register_blueprint(member_bp)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.permanent_session_lifetime = timedelta(minutes=30)
 
@@ -37,21 +39,6 @@ def load_user_context():
 # --- Routes ---
 
 
-@app.route("/members")
-@login_required
-def get_members():
-    try:
-        id_token = session["user"]["id_token"]
-        unit_id = request.args.get("invitee_id") or session["user"].get("unit_id")
-        url = urljoin(MEMBERS_URL, f"/units/{unit_id}/members")
-        headers = create_auth_header(id_token, "application/json")
-        with httpx.Client(timeout=10.0) as client:
-            res = client.get(url, headers=headers)
-            res.raise_for_status()
-            return jsonify(res.json())
-    except httpx.HTTPError as e:
-        print(f"[ERROR] Fetching members: {e}")
-        return jsonify({"results": []}), 500
 
 
 
