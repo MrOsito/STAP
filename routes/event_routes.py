@@ -70,13 +70,9 @@ def delete_event_route(event_id):
 @event_bp.route("/events")
 @login_required
 def fetch_events_by_range():
-    print("I'm dropping into fetch by range", flush=True)
  
     start = request.args.get("start")
     end = request.args.get("end")
-
-    print(f"This is start {start}", flush=True)
-    print(f"This is start {end}", flush=True)
 
     if not start or not end:
         return jsonify([])
@@ -84,13 +80,7 @@ def fetch_events_by_range():
         start_iso = isoparse(start).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
         end_iso = isoparse(end).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
-        print(f"This is start_iso {start_iso}", flush=True)
-        print(f"This is end_iso {end_iso}", flush=True)
-        print(session["user"]["member_id"], flush=True)
-
         events = get_member_events(session["user"]["member_id"], session["user"]["id_token"], start_iso, end_iso)
-
-        print(f"[DEBUG] Events size: {len(str(events))} characters", flush=True)
 
         formatted = [{
             "id": e.get("id", ""),
