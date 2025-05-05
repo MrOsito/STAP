@@ -74,8 +74,8 @@ def fetch_events_by_range():
     start = request.args.get("start")
     end = request.args.get("end")
 
-    print(f"This is start {start)")
-    print(f"This is start {end)")
+    print(f"This is start {start}")
+    print(f"This is start {end}")
 
     if not start or not end:
         return jsonify([])
