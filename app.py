@@ -30,7 +30,6 @@ def load_user_context():
     user = session.get("user")
     if user:
         session.permanent = True
-        session["user"]["last_active"] = datetime.utcnow().isoformat()
         g.context = get_user_context(user.get("id_token"), user.get("unit_id"), user.get("group_id"))
     else:
         g.context = {}

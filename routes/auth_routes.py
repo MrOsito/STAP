@@ -43,7 +43,6 @@ def login_route():
                 "group_id": profile.get("group", {}).get("id"),
                 "group_name": profile.get("group", {}).get("name"),
                 "group_roles": profile.get("group", {}).get("roles"),
-                "last_active": datetime.utcnow().isoformat(),
             }
             session.permanent = True
             return redirect(url_for("dashboard.dashboard"))
