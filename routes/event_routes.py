@@ -20,7 +20,7 @@ def get_event_detail(event_id):
         id_token = session["user"]["id_token"]
         token_time = time.time()
 
-        url = urljoin(EVENTS_API_URL, f"/event/events/{event_id}")
+        url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
         headers = create_auth_header(id_token, "application/json")
         with httpx.Client(timeout=10.0) as client:
             res = client.get(url, headers=headers)
