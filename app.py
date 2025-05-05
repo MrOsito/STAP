@@ -36,68 +36,6 @@ def load_user_context():
 
 # --- Routes ---
 
-@app.route("/calendar")
-@login_required
-def calendar():
-    return render_template("calendar.html", **g.context)
-
-@app.route("/settings")
-@login_required
-def settings():
-    return render_template("settings.html")
-
-@app.route("/events")
-@login_required
-def fetch_events_by_range():
-    start = request.args.get("start")
-    end = request.args.get("end")
-    if not start or not end:
-        return jsonify([])
-    try:
-        start_iso = isoparse(start).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
-        end_iso = isoparse(end).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
-
-        events = get_member_events(session["user"]["member_id"], session["user"]["id_token"], start_iso, end_iso)
-
-        formatted = [{
-            "id": e.get("id", ""),
-            "start": e.get("start_datetime", ""),
-            "end": e.get("end_datetime", ""),
-            "title": e.get("title", ""),
-            "invitee_type": e.get("invitee_type", ""),
-            "event_status": e.get("status", ""),
-            "challenge_area": e.get("challenge_area", ""),
-            "section": e.get("section", ""),
-            "invitee_id": e.get("invitee_id", ""),
-            "invitee_name": e.get("invitee_name", ""),
-            "group_id": e.get("group_id", "")
-        } for e in events]
-
-        return jsonify(formatted)
-
-    except Exception as e:
-        print(f"[ERROR] /events: {e}")
-        return api_error("Failed to fetch events")
-
-@app.route("/events", methods=["POST"])
-@login_required
-def create_event():
-    try:
-        user = session["user"]
-        unit_id = user.get("unit_id")
-        id_token = user.get("id_token")
-        event_data = request.get_json()
-
-        url = urljoin(EVENTS_API_URL, f"/units/{unit_id}/events")
-        headers = create_auth_header(id_token, "application/json")
-        with httpx.Client(timeout=10.0) as client:
-            res = client.post(url, headers=headers, json=event_data)
-            res.raise_for_status()
-            return jsonify({"success": True})
-    except httpx.HTTPError as e:
-        print(f"[ERROR] Creating event: {e}")
-        return api_error(str(e))
-
 
 @app.route("/members")
 @login_required

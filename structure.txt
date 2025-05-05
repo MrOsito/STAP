@@ -1,0 +1,33 @@
+.
+├── app.py
+├── config.py
+├── favicon.ico
+├── LICENSE
+├── README.md
+├── requirements.txt
+├── routes
+│   ├── auth_routes.py
+│   ├── dashboard_routes.py
+│   └── event_routes.py
+├── services
+│   └── api_helpers.py
+├── static
+│   ├── calendar.css
+│   ├── calendar.js
+│   └── terrain-logo.svg
+├── structure.txt
+├── templates
+│   ├── base.html
+│   ├── calendar.html
+│   ├── dashboard.html
+│   ├── login.html
+│   ├── partials
+│   │   ├── edit_event_modal.html
+│   │   ├── event_modal.html
+│   │   └── test_modal.html
+│   └── settings.html
+├── terrainProgram.py
+└── utils
+    └── auth_utils.py
+
+7 directories, 24 files

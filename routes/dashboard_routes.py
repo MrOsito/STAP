@@ -7,3 +7,13 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @login_required
 def dashboard():
     return render_template("dashboard.html", **g.context)
+
+@app.route("/calendar")
+@login_required
+def calendar():
+    return render_template("calendar.html", **g.context)
+
+@app.route("/settings")
+@login_required
+def settings():
+    return render_template("settings.html")

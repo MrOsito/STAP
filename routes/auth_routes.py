@@ -10,7 +10,7 @@ def logout():
     flash("You have been logged out.", "info")
     return redirect(url_for("auth.login_route"))
 
-
+@auth_bp.route("/", methods=["GET", "POST"])
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login_route():
     if request.method == "POST":
