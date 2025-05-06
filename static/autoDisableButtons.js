@@ -1,24 +1,18 @@
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("button[data-working-text]").forEach(button => {
-    button.addEventListener("click", () => {
-      if (button.disabled) return;
-
-      const originalHTML = button.innerHTML;
-      const workingText = button.getAttribute("data-working-text");
-
-      button.disabled = true;
-      button.innerHTML = `
-        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        ${workingText}
-      `;
-
-      // Fallback: restore the button after 10 seconds if not re-enabled manually
-      setTimeout(() => {
-        if (button.disabled) {
+document.addEventListener('DOMContentLoaded', function () {
+    document.body.addEventListener('click', function (event) {
+      const button = event.target.closest('button');
+      if (button && !button.disabled && !button.classList.contains('no-auto-disable')) {
+        button.disabled = true;
+        const originalText = button.innerHTML;
+        button.dataset.originalText = originalText;
+        button.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Working...`;
+  
+        // Auto re-enable after 5 seconds (optional)
+        setTimeout(() => {
           button.disabled = false;
-          button.innerHTML = originalHTML;
-        }
-      }, 10000);
+          button.innerHTML = button.dataset.originalText;
+        }, 5000);
+      }
     });
   });
-});
+  
