@@ -452,12 +452,7 @@ function setupEditEventButton() {
 
         console.time("fetchEvent");
         console.time("fetch /event/<eventId>");
-<<<<<<< HEAD
         return fetch(`/event/${currentEventId}`);
-        console.timeEnd("fetch /event/<eventId>");
-=======
-        return fetch(`/event/${currentEventId}`);        
->>>>>>> 2b5384b (Removed some log debugging and added some)
       })
       console.timeEnd("fetch /event/<eventId>");
       .then(res => {
