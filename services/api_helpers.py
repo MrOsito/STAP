@@ -46,8 +46,7 @@ def get_user_context(id_token, unit_id, group_id):
 
     unit_members = slim_member_list(fetch_members(id_token, "unit", unit_id)) if unit_id else []
     group_members = slim_member_list(fetch_members(id_token, "group", group_id)) if group_id else []
-    print("[DEBUG] Unit members:", unit_members)
-    print("[DEBUG] Group members:", group_members)
+
     user = session.get("user", {})
     return {
         "user": user,

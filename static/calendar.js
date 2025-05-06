@@ -451,7 +451,9 @@ function setupEditEventButton() {
         console.timeEnd("fetchMembersAndPopulateSelects");
 
         console.time("fetchEvent");
+        console.time("fetch /event/<eventId>");
         return fetch(`/event/${currentEventId}`);
+        console.timeEnd("fetch /event/<eventId>");
       })
       .then(res => {
         console.timeEnd("fetchEvent");
