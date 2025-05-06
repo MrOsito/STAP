@@ -435,14 +435,6 @@ function setupEditEventButton() {
   document.getElementById('editEventBtn').addEventListener('click', () => {
     if (!currentEventId) return;
 
-    const btn = document.getElementById('editEventBtn');
-    const spinner = document.getElementById('editBtnSpinner');
-    const text = document.getElementById('editBtnText');
-
-    btn.disabled = true;
-    spinner.classList.remove('d-none');
-    text.textContent = "Loading...";
-
     console.time("Total Edit Flow");
 
     console.time("fetchMembersAndPopulateSelects");
@@ -472,13 +464,12 @@ function setupEditEventButton() {
       })
       .finally(() => {
         console.timeEnd("Total Edit Flow");
-
-        btn.disabled = false;
-        spinner.classList.add('d-none');
-        text.textContent = "Edit / View";
+        // No need to manually re-enable the button or reset text
+        // autoDisableButtons.js takes care of it
       });
   });
 }
+
 
 
 function populateEditForm(data) {
