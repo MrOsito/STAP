@@ -9,9 +9,20 @@
     <h2 class="mb-4 text-center">Welcome, {{ user.member_name }}</h2>
 
     <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mb-4">
-        <a href="{{ url_for('dashboard.calendar') }}" class="btn btn-primary">Go to Calendar</a>
-        <a href="{{ url_for('dashboard.settings') }}" class="btn btn-secondary">Settings</a>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
+      <a href="{{ url_for('dashboard.calendar') }}" class="btn btn-primary" data-loading-text="Loading...">
+        <span class="button-text">Go to Calendar</span>
+        <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+      </a>
+
+      <a href="{{ url_for('dashboard.settings') }}" class="btn btn-primary" data-loading-text="Loading...">
+        <span class="button-text">Settings</span>
+        <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+      </a>
+
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-primary" data-loading-text="Loading...">
+        <span class="button-text">Logout</span>
+        <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+      </a>
     </div>
 
     <div class="mb-4">
