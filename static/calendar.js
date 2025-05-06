@@ -329,7 +329,6 @@ function renderEventContent(arg) {
 async function fetchEvents(fetchInfo, successCallback, failureCallback) {
   const url = `/events?start=${encodeURIComponent(fetchInfo.startStr)}&end=${encodeURIComponent(fetchInfo.endStr)}`;
   const errorEl = document.getElementById('calendarError');
-
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);

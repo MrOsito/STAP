@@ -23,18 +23,18 @@
       <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard.dashboard') }}">Dashboard</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Event Calendar</a>
+            <a class="nav-link {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('dashboard.calendar') }}">Event Calendar</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="{{ url_for('settings') }}">Settings</a>
+            <a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="{{ url_for('dashboard.settings') }}">Settings</a>
           </li>
         </ul>
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
           </li>
         </ul>
       </div>
