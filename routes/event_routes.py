@@ -30,12 +30,12 @@ def get_event_detail(event_id):
         event_data = res.json()
         parse_time = time.time()
 
-        print(f"[DEBUG] Event size: {len(str(event_data))} characters")
-        print(f"TIMING: token={token_time-start:.3f}s fetch={fetch_time-token_time:.3f}s parse={parse_time-fetch_time:.3f}s")
+        print(f"[DEBUG] Event size: {len(str(event_data))} characters", flush=True) 
+        print(f"TIMING: token={token_time-start:.3f}s fetch={fetch_time-token_time:.3f}s parse={parse_time-fetch_time:.3f}s", flush=True)
 
         response = jsonify(event_data)
         end_time = time.time()
-        print(f"[DEBUG] jsonify() complete in {end_time - parse_time:.3f}s")
+        print(f"[DEBUG] jsonify() complete in {end_time - parse_time:.3f}s", flush=True)
 
         return response
     except httpx.HTTPError as e:
