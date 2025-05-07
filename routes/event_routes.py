@@ -36,6 +36,7 @@ def get_event_detail(event_id):
         response = jsonify(event_data)
         end_time = time.time()
         print(f"[DEBUG] jsonify() complete in {end_time - parse_time:.3f}s", flush=True)
+        print(f"TOTAL TIMING: jsonify={end_time-start:.3f}s", flush=True)
 
         return response
     except httpx.HTTPError as e:
