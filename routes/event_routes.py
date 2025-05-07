@@ -17,7 +17,8 @@ event_bp = Blueprint("event", __name__)
 def get_event_detail(event_id):
     start = time.time()
     try:
-        id_token = session["user"]["id_token"]
+#        id_token = session["user"]["id_token"]
+        id_token = "c858a4e0-b111-4ee2-8140-594e6ede5d28"
         token_time = time.time()
 
         url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
