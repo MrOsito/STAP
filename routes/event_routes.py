@@ -4,11 +4,11 @@ from flask import request, session, jsonify, Blueprint
 from urllib.parse import urljoin
 from dateutil.parser import isoparse
 from datetime import datetime, timezone
-from services.api_helpers import create_auth_header, api_error
+from services.api_helpers import create_auth_header, api_error, shared_client
 from services.api_helpers import update_event, delete_event, get_member_events
 from utils.auth_utils import login_required
 from config import EVENTS_API_URL
-from api_helpers import create_auth_header
+
 
 event_bp = Blueprint("event", __name__)
 
