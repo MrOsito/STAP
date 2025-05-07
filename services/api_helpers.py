@@ -6,6 +6,7 @@ from config import MEMBERS_URL, EVENTS_API_URL
 
 # --- Define a shared httpx.Client --
 shared_client = httpx.Client(timeout=10.0)
+print("[DEBUG] Shared httpx.Client created in api_helpers.py", flush=True)
 
 
 def create_auth_header(id_token, content_type=None):
