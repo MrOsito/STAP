@@ -22,9 +22,8 @@ def get_event_detail(event_id):
 
         url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
         headers = create_auth_header(id_token, "application/json")
-        with httpx.Client(timeout=10.0) as client:
-            res = client.get(url, headers=headers)
-            res.raise_for_status()
+        res = shared_client.get(url, headers=headers)
+        res.raise_for_status()
         fetch_time = time.time()
 
         event_data = res.json()

@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from urllib.parse import urljoin
 from config import MEMBERS_URL, EVENTS_API_URL
 
+# --- Define a shared httpx.Client --
+shared_client = httpx.Client(timeout=10.0)
+
+
 def create_auth_header(id_token, content_type=None):
     headers = {"Authorization": id_token}
     if content_type:
