@@ -55,6 +55,8 @@ export function handleEventClick(info) {
   setCurrentEventId(info.event.id);
   // Ensure invitee_id is captured from extendedProps
   setCurrentInviteeId(info.event.extendedProps.invitee_id || null);
+  console.log("Set currentInviteeId:", info.event.extendedProps.invitee_id);
+
 
   const statusRaw = info.event.extendedProps.event_status || '';
   const challengeRaw = info.event.extendedProps.challenge_area || '';
