@@ -195,7 +195,7 @@ function populateEditForm(data) {
   populateTextFields(data);
   setDropdownSelections(data);
   // Use the determined inviteeId for read-only state check
-  const inviteeIdForReadOnly = data.invitee_id || currentInviteeId;
+  const inviteeIdForReadOnly = data.invitee_id || getCurrentInviteeId();
   handleReadOnlyState(data, userUnitId, inviteeIdForReadOnly); // Pass userUnitId and event's invitee_id or fallback
 
   // Need to manually enable/disable Choices instances based on read-only state
@@ -289,7 +289,7 @@ async function handleSaveChangesClick() {
     const mode = dom.saveChangesBtn.dataset.mode || "edit";
     const eventId = mode === "edit" ? document.getElementById('editEventId').value : null; // Get event ID only in edit mode
     // Pass the Choices instances from state when building the payload
-    const payload = buildPatchPayload(currentInviteeId, organiserChoices, leaderChoices, assistantChoices, challengeAreaChoices, scoutMethodChoices);
+    const payload = buildPatchPayload(getCurrentInviteeId(), organiserChoices, leaderChoices, assistantChoices, challengeAreaChoices, scoutMethodChoices);
 
     try {
         await saveEvent(mode, eventId, payload);
