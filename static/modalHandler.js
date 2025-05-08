@@ -1,12 +1,29 @@
 // modalHandler.js - Manages modal interactions
 
 import { dom, userUnitId, userMemberId, userMemberName, membersData } from './state.js';
+// Keep createAndResetChoices if needed elsewhere, but for member dropdowns, we'll just set choices after initial creation
 import { formatCamelCase, toLocalDatetimeInputValue, setupEditModalHeader, handleReadOnlyState, clearAllChoiceSelections, createAndResetChoices } from './utils.js';
 import { fetchEventDetail, fetchMembers, saveEvent, deleteEvent, buildPatchPayload } from './apiService.js';
-// Import currentInviteeId from state.js
-import { setCurrentEventId, setCurrentInviteeId, setOrganiserChoices, setLeaderChoices, setAssistantChoices, organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices, currentInviteeId } from './state.js';
+// Import Choices instances and setters from state.js
+import { setCurrentEventId, setCurrentInviteeId, setOrganiserChoices, setLeaderChoices, setAssistantChoices, organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices } from './state.js';
 
 // Removed local declarations for Choices instances - now managed via state.js
+
+// New function to initialize member Choices instances once
+export function initializeMemberChoices() {
+    // Use createAndResetChoices for the initial creation to handle potential prior states
+    const org = createAndResetChoices("#editOrganiser", { removeItemButton: true });
+    const leader = createAndResetChoices("#editLeaders", { removeItemButton: true });
+    const assistant = createAndResetChoices("#editAssistants", { removeItemButton: true });
+
+    // Store the instances in state for later access
+    setOrganiserChoices(org);
+    setLeaderChoices(leader);
+    setAssistantChoices(assistant);
+
+    console.log("Member Choices instances initialized.");
+}
+
 
 export function setupModals() {
   // Set up event listeners for the view and edit modals
@@ -17,6 +34,7 @@ export function setupModals() {
   // Event listener for the edit modal being hidden to clear choices
   dom.eventEditModal.addEventListener('hidden.bs.modal', () => {
       // Use imported choicesInstances from state
+      // Only clear selections, don't destroy/recreate instances here
       clearAllChoiceSelections([organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices]);
       setCurrentEventId(null); // Clear current event ID
       setCurrentInviteeId(null); // Clear current invitee ID
@@ -35,7 +53,8 @@ export function handleEventClick(info) {
 
   console.time("populate DOM");
   setCurrentEventId(info.event.id);
-  setCurrentInviteeId(info.event.extendedProps.invitee_id || null); // Ensure invitee_id is captured here
+  // Ensure invitee_id is captured from extendedProps
+  setCurrentInviteeId(info.event.extendedProps.invitee_id || null);
 
   const statusRaw = info.event.extendedProps.event_status || '';
   const challengeRaw = info.event.extendedProps.challenge_area || '';
@@ -91,7 +110,7 @@ export function handleDateClick(info) {
 
   // Populate member dropdowns for the user's unit
   fetchAndPopulateMembers(userUnitId).then(members => {
-      populateChoicesDropdowns(members); // Populate dropdowns with fetched members
+      // populateChoicesDropdowns is called within fetchAndPopulateMembers
       // After populating, manage the read-only state for create mode (always editable)
       handleReadOnlyState({}, userUnitId, userUnitId); // Pass empty data, userUnitId for both
   }).catch(console.error);
@@ -126,7 +145,6 @@ async function handleEditEventClick() {
         console.timeEnd("fetchEventDetail");
 
         console.time("fetchAndPopulateMembers");
-        // >>>>>>>>>> MODIFICATION HERE <<<<<<<<<<
         // Use eventData.invitee_id if available, otherwise use the stored currentInviteeId
         const inviteeIdToUse = eventData.invitee_id || currentInviteeId;
 
@@ -139,8 +157,8 @@ async function handleEditEventClick() {
             text.textContent = "Edit / View";
             return; // Stop the process if inviteeId is missing
         }
-        const members = await fetchAndPopulateMembers(inviteeIdToUse); // Use the determined inviteeId
-        // populateChoicesDropdowns is called within fetchAndPopulateMembers
+        // fetchAndPopulateMembers now calls populateChoicesDropdowns internally
+        await fetchAndPopulateMembers(inviteeIdToUse);
         console.timeEnd("fetchAndPopulateMembers");
 
         populateEditForm(eventData);
@@ -150,7 +168,6 @@ async function handleEditEventClick() {
         alert("Could not load event for editing.");
     } finally {
         // Ensure button state is reset even on error after the initial fetch
-        // If there was an early return above, this might run anyway, which is fine.
         btn.disabled = false;
         spinner.classList.add('d-none');
         text.textContent = "Edit / View";
@@ -159,7 +176,7 @@ async function handleEditEventClick() {
 
 function populateEditForm(data) {
   setupEditModalHeader();
-  // No need to resetDropdowns here, fetchAndPopulateMembers calls populateChoicesDropdowns which resets
+  // populateChoicesDropdowns is called within fetchAndPopulateMembers
 
   populateTextFields(data);
   setDropdownSelections(data);
@@ -169,6 +186,7 @@ function populateEditForm(data) {
 
   // Need to manually enable/disable Choices instances based on read-only state
    const isReadOnly = (data.status || data.event_status || '').toLowerCase() === 'concluded' || String(inviteeIdForReadOnly) !== String(userUnitId);
+   // Use imported choicesInstances from state
    [organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices].forEach(choice => {
      if (choice) isReadOnly ? choice.disable() : choice.enable();
    });
@@ -194,11 +212,19 @@ function setDropdownSelections(data) {
   if (organiserChoices) organiserChoices.setChoiceByValue(data.organisers?.map(o => o.id) || []);
   if (leaderChoices) leaderChoices.setChoiceByValue(data.attendance?.leader_members?.map(m => m.id) || []);
   if (assistantChoices) assistantChoices.setChoiceByValue(data.attendance?.assistant_members?.map(m => m.id) || []);
+  // Ensure challenge_area is treated as an array for setChoiceByValue if it's a single string
   if (challengeAreaChoices && data.challenge_area) {
-    challengeAreaChoices.setChoiceByValue(Array.isArray(data.challenge_area) ? data.challenge_area : [data.challenge_area]);
+    const challengeAreaValues = Array.isArray(data.challenge_area) ? data.challenge_area : [data.challenge_area].filter(Boolean);
+    challengeAreaChoices.setChoiceByValue(challengeAreaValues);
+  } else if (challengeAreaChoices) {
+      challengeAreaChoices.setChoiceByValue([]); // Clear if no value
   }
+
   if (scoutMethodChoices) {
-    scoutMethodChoices.setChoiceByValue(data.review?.scout_method_elements || []);
+      const scoutMethodValues = data.review?.scout_method_elements || [];
+      scoutMethodChoices.setChoiceByValue(scoutMethodValues);
+  } else if (scoutMethodChoices) {
+      scoutMethodChoices.setChoiceByValue([]); // Clear if no value
   }
 }
 
@@ -218,30 +244,29 @@ async function fetchAndPopulateMembers(inviteeId) {
     } else {
         // For any other inviteeId (including group IDs or if embedded unit data is missing), always fetch from API for robustness
         console.warn(`InviteeId ${inviteeId} is not the user's unit OR embedded data is incomplete. Fetching members via API.`);
-        membersToUse = await fetchMembers(inviteeId); // Fallback to API fetch
+        try {
+            membersToUse = await fetchMembers(inviteeId); // Call the fetchMembers function from apiService
+        } catch (error) {
+            console.error("Failed to fetch members via API:", error);
+            // Decide how to handle this error - maybe populate dropdowns with an empty list?
+            membersToUse = [];
+            alert("Failed to load members for dropdowns."); // Alert the user
+        }
     }
 
      // Populate the Choices dropdowns with the fetched/extracted members
+     // This function now only sets choices on existing instances
     populateChoicesDropdowns(membersToUse);
     return membersToUse; // Return the members array
 }
 
-// This function initializes/resets the Choices instances for members and populates them
+// This function now ONLY sets the choices on the EXISTING instances
+// The instances are created once during initialization by initializeMemberChoices
 export function populateChoicesDropdowns(members) {
-    // Use createAndResetChoices from utils to handle initialization/resetting
-    const org = createAndResetChoices("#editOrganiser", { removeItemButton: true });
-    const leader = createAndResetChoices("#editLeaders", { removeItemButton: true });
-    const assistant = createAndResetChoices("#editAssistants", { removeItemButton: true });
-
-    // Set the choices for the dropdowns
-    org.setChoices(members, 'value', 'label', true);
-    leader.setChoices(members, 'value', 'label', true);
-    assistant.setChoices(members, 'value', 'label', true);
-
-    // Store the instances in state for later access (e.g., in clearAllChoiceSelections, setDropdownSelections)
-    setOrganiserChoices(org);
-    setLeaderChoices(leader);
-    setAssistantChoices(assistant);
+    // Check if instances exist before setting choices
+    if (organiserChoices) organiserChoices.setChoices(members, 'value', 'label', true);
+    if (leaderChoices) leaderChoices.setChoices(members, 'value', 'label', true);
+    if (assistantChoices) assistantChoices.setChoices(members, 'value', 'label', true);
 }
 
 

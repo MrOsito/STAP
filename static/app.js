@@ -1,9 +1,14 @@
 // app.js - Main entry point for the calendar application
 
 import { initCalendar } from './calendarInitializer.js';
-import { setupModals, populateChoicesDropdowns } from './modalHandler.js'; // Import setupModals AND populateChoicesDropdowns
-import { initStaticChoiceDropdowns } from './utils.js'; // Import ONLY initStaticChoiceDropdowns
-import { membersData, allEvents, userUnitId } from './state.js'; // Import necessary state variables
+// Import initializeMemberChoices and setupModals from modalHandler
+// populateChoicesDropdowns is now called internally within modalHandler
+import { initializeMemberChoices, setupModals } from './modalHandler.js';
+import { initStaticChoiceDropdowns } from './utils.js';
+// We still need membersData here to potentially check for initial population logic if necessary,
+// although the logic is now primarily in fetchAndPopulateMembers within modalHandler.
+import { membersData, allEvents, userUnitId } from './state.js';
+
 
 // Function to filter events based on the selected invitee
 function filterEvents() {
@@ -18,28 +23,28 @@ function filterEvents() {
 function initializeApp() {
   console.log("Initializing Calendar...");
 
-  // Initialize static Choices dropdowns (Challenge Area, Scout Method)
+  // Initialize static Choices dropdowns (Challenge Area, Scout Method) once
   // These instances are now stored in state within initStaticChoiceDropdowns
   initStaticChoiceDropdowns();
 
+  // Initialize the member Choices dropdowns once when the app starts
+  initializeMemberChoices();
+
   // Set up event listeners for modals.
-  // The Choices instances for members are created and managed within modalHandler now.
   setupModals(); // Call setupModals to set up event listeners
 
-  // Populate initial member choices for the edit/create modal dropdowns
-  // when the page loads, using the embedded unit members data.
-  // This populates the dropdowns even before a modal is opened,
-  // ensuring they are ready if the user clicks 'Create Event' or 'Edit/View'.
-  if (membersData && membersData.unit_members) {
-    const initialUnitMembers = membersData.unit_members.map(m => ({
-      value: m.id,
-      label: `${m.first_name} ${m.last_name}`
-    }));
-    populateChoicesDropdowns(initialUnitMembers); // Call populateChoicesDropdowns from modalHandler
-  } else {
-    console.warn("Embedded unit members data not found. Member dropdowns may not be populated initially.");
-    // Consider adding logic here to fetch members if embedded data is missing.
-  }
+
+  // Note: The initial population of member dropdowns on page load
+  // is now implicitly handled:
+  // 1. initializeMemberChoices creates empty Choices instances.
+  // 2. When the calendar fetches events, if any events are present and you click one,
+  //    handleEventClick -> handleEditEventClick -> fetchAndPopulateMembers is called,
+  //    which will fetch/use embedded data and call populateChoicesDropdowns to fill the instances.
+  // 3. If you click a date to create a new event, handleDateClick -> fetchAndPopulateMembers(userUnitId)
+  //    is called, which will use embedded unit data and call populateChoicesDropdowns to fill them.
+  //    So, there's no explicit need to call populateChoicesDropdowns here on initial page load
+  //    unless you want the dropdowns populated immediately even before user interaction.
+  //    Given the error context, it's safer to let the modal logic handle population on open/edit.
 
 
   // Initialize the calendar, passing the filterEvents function
