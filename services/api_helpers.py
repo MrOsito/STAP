@@ -181,17 +181,3 @@ def delete_event(event_id, id_token):
     except Exception as e:
         logger.error(f"An unexpected error occurred deleting event {event_id}: {e}", exc_info=True)
         raise
-
-
-def fetch_members(id_token, entity_type, entity_id):
-    print("[DEBUG] Fetching members")
-    url = urljoin(MEMBERS_URL, f"/{entity_type}s/{entity_id}/members")
-    print("[DEBUG] URL:", url)
-    headers = create_auth_header(id_token, "application/json")
-    try:
-        res = shared_client.get(url, headers=headers)ß
-        res.raise_for_status()
-        return res.json().get("results", [])
-    except httpx.HTTPError as e:
-        print(f"[ERROR] Fetching {entity_type} members: {e}")
-        return []
