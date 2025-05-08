@@ -189,7 +189,7 @@ def fetch_members(id_token, entity_type, entity_id):
     print("[DEBUG] URL:", url)
     headers = create_auth_header(id_token, "application/json")
     try:
-        res = shared_client.get(url, headers=headers)
+        res = shared_client.get(url, headers=headers)ß
         res.raise_for_status()
         return res.json().get("results", [])
     except httpx.HTTPError as e:
