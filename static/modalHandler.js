@@ -146,8 +146,8 @@ async function handleEditEventClick() {
         const eventData = await fetchEventDetail(eventId);
         console.timeEnd("fetchEventDetail");
 
+        console.log("Fetched event data:", eventData);
         console.log(eventData.invitee_id)
-        console.log(setscurrentInviteeId)
         console.log(currentInviteeId)
 
         console.time("fetchAndPopulateMembers");
