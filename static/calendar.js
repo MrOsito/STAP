@@ -432,7 +432,7 @@ function handleEventClick(info) {
 
 // --- Setup Edit Button ---
 function setupEditEventButton() {
-  document.getElementById('editEventBtn').addEventListener('click', () => {
+  document.getElementById('editEventBtn').addEventListener('click', async () => {
     if (!currentEventId) return;
 
     const btn = document.getElementById('editEventBtn');
@@ -445,40 +445,35 @@ function setupEditEventButton() {
 
     console.time("Total Edit Flow");
 
-    console.time("fetchMembersAndPopulateSelects");
-    fetchMembersAndPopulateSelects(currentInviteeId)
-      .then(() => {
-        console.timeEnd("fetchMembersAndPopulateSelects");
+    try {
+      console.time("fetchMembersAndPopulateSelects");
+      await fetchMembersAndPopulateSelects(currentInviteeId);
+      console.timeEnd("fetchMembersAndPopulateSelects");
 
-        console.time("fetchEvent");
-        return fetch(`/event/${currentEventId}`);
-      })
-      .then(res => {
-        console.timeEnd("fetchEvent");
+      console.time("fetchEvent");
+      const res = await fetch(`/event/${currentEventId}`);
+      console.timeEnd("fetchEvent");
 
-        console.time("parseJSON");
-        return res.json();
-      })
-      .then(data => {
-        console.timeEnd("parseJSON");
+      console.time("parseJSON");
+      const data = await res.json();
+      console.timeEnd("parseJSON");
 
-        console.time("populateEditForm");
-        populateEditForm(data);
-        console.timeEnd("populateEditForm");
-      })
-      .catch(err => {
-        console.error("Edit failed:", err);
-        alert("Could not load event for editing.");
-      })
-      .finally(() => {
-        console.timeEnd("Total Edit Flow");
+      console.time("populateEditForm");
+      populateEditForm(data);
+      console.timeEnd("populateEditForm");
 
-        btn.disabled = false;
-        spinner.classList.add('d-none');
-        text.textContent = "Edit / View";
-      });
+    } catch (err) {
+      console.error("Edit failed:", err);
+      alert("Could not load event for editing.");
+    } finally {
+      console.timeEnd("Total Edit Flow");
+      btn.disabled = false;
+      spinner.classList.add('d-none');
+      text.textContent = "Edit / View";
+    }
   });
 }
+
 
 
 function populateEditForm(data) {
