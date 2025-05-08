@@ -74,6 +74,7 @@ export function setAllEvents(events) {
 
 export function setCurrentEventId(id) {
     currentEventId = id;
+    console.log("Current Event ID set to:", currentEventId);
     // Update the hidden input in the view modal when the ID changes
     if(dom.editEventId) {
         dom.editEventId.value = id;
