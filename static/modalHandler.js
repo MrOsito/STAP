@@ -126,7 +126,7 @@ async function handleEditEventClick() {
 
         console.time("fetchAndPopulateMembers");
         const members = await fetchAndPopulateMembers(eventData.invitee_id); // Fetch members based on event invitee
-        populateChoicesDropdowns(members); // Populate dropdowns with fetched members
+        // populateChoicesDropdowns is called within fetchAndPopulateMembers
         console.timeEnd("fetchAndPopulateMembers");
 
 
@@ -201,12 +201,7 @@ async function fetchAndPopulateMembers(inviteeId) {
             }));
             console.log("Populating with unit members from embedded data.");
         } else {
-            // Assuming inviteeId might correspond to a group ID
-             // Find the group in membersData.group_members based on inviteeId (if necessary)
-             // Note: Embedded data might not have full member lists for groups,
-             // relying on the /members API endpoint is more robust for groups.
-             // Let's simplify and always fetch for groups for now if embedded data isn't structured with group.members
-            // For this version, we'll only use embedded for unit, and fetch for anything else to be safe.
+             // For invitee IDs that are not the user's unit, always fetch from API for robustness
              console.warn(`InviteeId ${inviteeId} is not the user's unit. Falling back to fetch members.`);
              membersToUse = await fetchMembers(inviteeId); // Fallback to API fetch
         }
@@ -221,7 +216,7 @@ async function fetchAndPopulateMembers(inviteeId) {
 }
 
 // This function initializes/resets the Choices instances for members and populates them
-function populateChoicesDropdowns(members) {
+export function populateChoicesDropdowns(members) { // <--- Added 'export' here
     // Use createAndResetChoices from utils to handle initialization/resetting
     const org = createAndResetChoices("#editOrganiser", { removeItemButton: true });
     const leader = createAndResetChoices("#editLeaders", { removeItemButton: true });
