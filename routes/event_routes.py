@@ -20,15 +20,20 @@ def get_event_detail(event_id):
         id_token = session["user"]["id_token"]
         token_time = time.time()
 
+        a = time.time()
         url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
+        b = time.time()
         headers = create_auth_header(id_token, "application/json")
+        c = time.time()
         res = shared_client.get(url, headers=headers)
+        d = time.time()
         res.raise_for_status()
         fetch_time = time.time()
 
         event_data = res.json()
         parse_time = time.time()
 
+        print(f"[DETAIL DEBUG] a to b {b - a:.3f}s b to c {c - b:.3f}s c to d {d - c:.3f}s d to fetch {fetch_time - d:.3f}s", flush=True)
         print(f"[DEBUG] Event size: {len(str(event_data))} characters", flush=True) 
         print(f"TIMING: token={token_time-start:.3f}s fetch={fetch_time-token_time:.3f}s parse={parse_time-fetch_time:.3f}s", flush=True)
 

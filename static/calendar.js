@@ -434,14 +434,16 @@ function handleEventClick(info) {
 function setupEditEventButton() {
   document.getElementById('editEventBtn').addEventListener('click', async () => {
     if (!currentEventId) return;
-
+    console.time("Button setup");
     const btn = document.getElementById('editEventBtn');
     const spinner = document.getElementById('editBtnSpinner');
     const text = document.getElementById('editBtnText');
-
+      
     btn.disabled = true;
     spinner.classList.remove('d-none');
     text.textContent = "Loading...";
+
+    console.timeEnd("Button setup");
 
     console.time("Total Edit Flow");
 
