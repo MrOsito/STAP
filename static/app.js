@@ -3,7 +3,8 @@
 import { initCalendar } from './calendarInitializer.js';
 import { setupModals } from './modalHandler.js';
 import { initStaticChoiceDropdowns, populateMemberChoices } from './utils.js';
-import { membersData, unitMembers, groupMembers, allEvents } from './state.js'; // Import necessary state
+import { membersData, allEvents } from './state.js'; // Import only membersData and allEvents
+
 
 // Function to filter events based on the selected invitee
 function filterEvents() {
