@@ -3,3 +3,5 @@ boto3
 httpx
 hypercorn
 uvloop
+Flask-WTF>=1.1.1
+WTForms>=3.0.1
