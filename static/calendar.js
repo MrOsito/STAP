@@ -668,37 +668,47 @@ function populateMemberChoices(members) {
 }
 
 async function fetchMembersAndPopulateSelects(inviteeId) {
-    try {
-        // Safely access membersData and its properties
-        const membersDataElement = document.getElementById('members-data');
-        if (!membersDataElement) {
-            console.warn("members-data script tag not found!");
-            return; // Or handle this more gracefully (e.g., fetch from the server)
-        }
+  console.time("fetchMembersAndPopulateSelects");
 
-        const membersData = JSON.parse(membersDataElement.textContent);
+  try {
+    console.time("DOM lookup");
+    const membersDataElement = document.getElementById('members-data');
+    console.timeEnd("DOM lookup");
 
-        if (membersData && membersData.unit_members && membersData.group_members) {
-            const isGroup = String(inviteeId) !== String(userData.unit_id);
-            const members = isGroup
-                ? membersData.group_members.map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` }))
-                : membersData.unit_members.map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` }));
-
-            populateMemberChoices(members);
-            return members;
-        } else {
-            console.warn("Incomplete members data found.");
-            // Optionally, you could fetch from the server here as a fallback
-            // and call populateMemberChoices with the fetched data
-            return [];
-        }
-
-    } catch (error) {
-        console.error("Error processing members data:", error);
-        // Handle the error appropriately (e.g., display a message to the user)
-        return [];
+    if (!membersDataElement) {
+      console.warn("members-data script tag not found!");
+      console.timeEnd("fetchMembersAndPopulateSelects");
+      return;
     }
+
+    console.time("JSON parse");
+    const membersData = JSON.parse(membersDataElement.textContent);
+    console.timeEnd("JSON parse");
+
+    if (membersData?.unit_members && membersData?.group_members) {
+      console.time("member map + populate");
+      const isGroup = String(inviteeId) !== String(userData.unit_id);
+      const members = (isGroup ? membersData.group_members : membersData.unit_members)
+        .map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` }));
+
+      populateMemberChoices(members);
+      console.timeEnd("member map + populate");
+
+      console.timeEnd("fetchMembersAndPopulateSelects");
+      return members;
+    } else {
+      console.warn("Incomplete members data found.");
+      console.timeEnd("fetchMembersAndPopulateSelects");
+      return [];
+    }
+
+  } catch (error) {
+    console.error("Error processing members data:", error);
+    console.timeEnd("fetchMembersAndPopulateSelects");
+    return [];
+  }
 }
+
 
 
 // --- Startup ---
