@@ -1,10 +1,11 @@
 # routes/auth_routes.py
-from flask import Blueprint, session, redirect, url_for, flash, request, render_template, escape
+from flask import Blueprint, session, redirect, url_for, flash, request, render_template
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, PasswordField, SelectField
 from wtforms.validators import DataRequired, Regexp
 from config import AWS_REGION, CLIENT_ID
 from services.api_helpers import get_profiles
+from markupsafe import escape
 
 # Initialize CSRF protection (in your app factory or app.py)
 csrf = CSRFProtect()
