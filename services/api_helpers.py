@@ -23,10 +23,9 @@ def get_profiles(id_token):
     url = urljoin(MEMBERS_URL, "/profiles")
     headers = create_auth_header(id_token)
     try:
-        with httpx.Client(timeout=10.0) as client:
-            res = client.get(url, headers=headers)
-            res.raise_for_status()
-            return res.json()
+        res = shared_client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json()
     except httpx.HTTPError as e:
         print(f"[ERROR] Fetching profiles: {e}")
         return {}
@@ -37,10 +36,9 @@ def fetch_members(id_token, entity_type, entity_id):
     print("[DEBUG] URL:", url)
     headers = create_auth_header(id_token, "application/json")
     try:
-        with httpx.Client(timeout=10.0) as client:
-            res = client.get(url, headers=headers)
-            res.raise_for_status()
-            return res.json().get("results", [])
+        res = shared_client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json().get("results", [])
     except httpx.HTTPError as e:
         print(f"[ERROR] Fetching {entity_type} members: {e}")
         return []
@@ -69,10 +67,9 @@ def get_member_events(user_id, id_token, start=None, end=None):
     url = urljoin(EVENTS_API_URL, f"/members/{user_id}/events?start_datetime={start}&end_datetime={end}")
     headers = create_auth_header(id_token, "application/json")
     try:
-        with httpx.Client(timeout=10.0) as client:
-            res = client.get(url, headers=headers)
-            res.raise_for_status()
-            return res.json().get("results", [])
+        res = shared_client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json().get("results", [])
     except httpx.HTTPError as e:
         print(f"[ERROR] Fetching member events: {e}")
         return []
@@ -81,10 +78,9 @@ def update_event(event_id, event_data, id_token):
     url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
     headers = create_auth_header(id_token, "application/json")
     try:
-        with httpx.Client(timeout=10.0) as client:
-            res = client.patch(url, headers=headers, json=event_data)
-            res.raise_for_status()
-            return res.json() if res.content else {"success": True, "note": "No content (204)"}
+        res = shared_client.patch(url, headers=headers, json=event_data)
+        res.raise_for_status()
+        return res.json() if res.content else {"success": True, "note": "No content (204)"}
     except httpx.HTTPError as e:
         print(f"[ERROR] Updating event: {e}")
         raise
@@ -93,10 +89,9 @@ def delete_event(event_id, id_token):
     url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
     headers = create_auth_header(id_token, "application/json")
     try:
-        with httpx.Client(timeout=10.0) as client:
-            res = client.delete(url, headers=headers)
-            res.raise_for_status()
-            return {"success": True}
+        res = shared_client.delete(url, headers=headers)
+        res.raise_for_status()
+        return {"success": True}
     except httpx.HTTPError as e:
         print(f"[ERROR] Deleting event: {e}")
         raise

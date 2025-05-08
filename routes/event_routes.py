@@ -114,10 +114,9 @@ def create_event():
 
         url = urljoin(EVENTS_API_URL, f"/units/{unit_id}/events")
         headers = create_auth_header(id_token, "application/json")
-        with httpx.Client(timeout=10.0) as client:
-            res = client.post(url, headers=headers, json=event_data)
-            res.raise_for_status()
-            return jsonify({"success": True})
+        res = shared_client.post(url, headers=headers, json=event_data)
+        res.raise_for_status()
+        return jsonify({"success": True})
     except httpx.HTTPError as e:
         print(f"[ERROR] Creating event: {e}")
         return api_error(str(e))
