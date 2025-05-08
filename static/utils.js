@@ -1,6 +1,8 @@
 // utils.js - Collection of helper functions
 
 import { dom, scoutMethodList, challengeAreaList } from './state.js'; // Import necessary state
+import { setChallengeAreaChoices, setScoutMethodChoices, setOrganiserChoices, setLeaderChoices, setAssistantChoices } from './state.js';
+
 
 // --- Utilities ---
 export function toLocalDatetimeInputValue(utcString) {
@@ -23,16 +25,21 @@ export function formatCamelCase(text) {
   return text.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-export function resetChoices(instance, selector, options = {}) {
-  if (instance) instance.destroy();
-  return new Choices(selector, options);
+// Helper to reset/create Choices instances
+export function createAndResetChoices(selector, options = {}) {
+  // This function can be called by other modules to create/reset their Choices instances
+   const element = document.querySelector(selector);
+   if (element && element.choices) {
+       element.choices.destroy();
+   }
+   return new Choices(selector, options);
 }
+
 
 export function clearAllChoiceSelections(choicesInstances) {
   choicesInstances.forEach(choice => {
     if (choice) {
       choice.removeActiveItems();
-      //choice.removeHighlightedItems(); // This might not be necessary depending on Choices.js version
     }
   });
 }
@@ -62,7 +69,7 @@ export function handleReadOnlyState(data, userUnitId, currentInviteeId) {
   const allInputs = dom.eventEditModal.querySelectorAll('input, select, textarea, button.btn-primary');
   allInputs.forEach(el => el.disabled = isReadOnly);
 
-  // Assuming you pass Choices instances to this function or access them from state
+  // Need to disable/enable Choices instances - these are managed in modalHandler
   // [organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices].forEach(choice => {
   //   if (choice) isReadOnly ? choice.disable() : choice.enable();
   // });
@@ -70,9 +77,10 @@ export function handleReadOnlyState(data, userUnitId, currentInviteeId) {
   dom.saveChangesBtn.disabled = isReadOnly;
 }
 
+// Initialize static Choices dropdowns and return the instances
 export function initStaticChoiceDropdowns() {
     // Initialize Challenge Area Choices
-    const challengeAreaChoices = new Choices("#editChallengeArea", {
+    const challengeAreaChoices = createAndResetChoices("#editChallengeArea", {
         removeItemButton: true
     });
     challengeAreaChoices.setChoices(
@@ -83,7 +91,7 @@ export function initStaticChoiceDropdowns() {
     );
 
     // Initialize Scout Method Choices
-    const scoutMethodChoices = new Choices("#editScoutMethod", {
+    const scoutMethodChoices = createAndResetChoices("#editScoutMethod", {
         removeItemButton: true,
         searchEnabled: false
     });
@@ -93,24 +101,11 @@ export function initStaticChoiceDropdowns() {
         'label',
         true
     );
+
+     // Store these in state as well if needed globally, but modalHandler will also have direct refs
+     setChallengeAreaChoices(challengeAreaChoices);
+     setScoutMethodChoices(scoutMethodChoices);
+
+
      return { challengeAreaChoices, scoutMethodChoices }; // Return instances
-}
-
-export function resetDropdowns(choicesInstances) {
-  // Assuming you pass Choices instances to this function or access them from state
-   choicesInstances.forEach(choice => {
-     if (choice) choice.destroy();
-   });
-
-  const { challengeAreaChoices, scoutMethodChoices } = initStaticChoiceDropdowns(); // Re-initialize
-
-  // Clear previous selections
-  // [organiserChoices, leaderChoices, assistantChoices, challengeAreaChoices, scoutMethodChoices].forEach(choice => {
-  //   if (choice) {
-  //     choice.removeActiveItems();
-  //     choice.removeHighlightedItems();
-  //   }
-  // });
-
-  return { challengeAreaChoices, scoutMethodChoices }; // Return new instances
 }
