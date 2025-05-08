@@ -7,6 +7,10 @@ import { fetchEventDetail, fetchMembers, saveEvent, deleteEvent, buildPatchPaylo
 // Import Choices instances and setters from state.js
 import { setCurrentEventId, setCurrentInviteeId, setOrganiserChoices, setLeaderChoices, setAssistantChoices, organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices } from './state.js';
 
+import { getCurrentInviteeId } from './state.js';
+
+
+
 // Removed local declarations for Choices instances - now managed via state.js
 
 // New function to initialize member Choices instances once
@@ -152,7 +156,7 @@ async function handleEditEventClick() {
 
         console.time("fetchAndPopulateMembers");
         // Use eventData.invitee_id if available, otherwise use the stored currentInviteeId
-        const inviteeIdToUse = eventData.invitee_id || currentInviteeId;
+        const inviteeIdToUse = eventData.invitee_id || getCurrentInviteeId();
 
         if (!inviteeIdToUse) {
             console.error("Cannot fetch members: No invitee ID available from event data or state.");

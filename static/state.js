@@ -85,6 +85,11 @@ export function setCurrentInviteeId(id) {
     currentInviteeId = id;
 }
 
+export function getCurrentInviteeId() {
+  return currentInviteeId;
+}
+
+
 // Functions to set Choices instances
 export function setOrganiserChoices(choices) { organiserChoices = choices; }
 export function setLeaderChoices(choices) { leaderChoices = choices; }
