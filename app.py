@@ -6,6 +6,7 @@ from dateutil.parser import isoparse
 import httpx
 from urllib.parse import urljoin
 import time
+import logging
 from services.api_helpers import (
     create_auth_header, api_error, get_profiles, fetch_members,
     get_user_context, get_member_events, update_event, delete_event
@@ -25,6 +26,17 @@ app.register_blueprint(event_bp)
 app.register_blueprint(member_bp)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.permanent_session_lifetime = timedelta(minutes=30)
+
+
+# --- Logging Configuration ---
+# Configure this to your needs (e.g., file, log level, format)
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG for more verbosity
+    format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
+)
+# If you want to suppress werkzeug's default INFO logs for requests, you can do:
+# log = logging.getLogger('werkzeug')
+# log.setLevel(logging.WARNING)
 
 # --- Before Request ---
 @app.before_request
