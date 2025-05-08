@@ -1,13 +1,14 @@
 // modalHandler.js - Manages modal interactions
 
 import { dom, userUnitId, userMemberId, userMemberName, membersData } from './state.js';
-import { formatCamelCase, toLocalDatetimeInputValue, setupEditModalHeader, handleReadOnlyState, clearAllChoiceSelections, createAndResetChoices } from './utils.js'; // Use createAndResetChoices
+import { formatCamelCase, toLocalDatetimeInputValue, setupEditModalHeader, handleReadOnlyState, clearAllChoiceSelections, createAndResetChoices } from './utils.js';
 import { fetchEventDetail, fetchMembers, saveEvent, deleteEvent, buildPatchPayload } from './apiService.js';
-import { setCurrentEventId, setCurrentInviteeId, setOrganiserChoices, setLeaderChoices, setAssistantChoices, organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices } from './state.js'; // Import Choices instances and setters
+// Import currentInviteeId from state.js
+import { setCurrentEventId, setCurrentInviteeId, setOrganiserChoices, setLeaderChoices, setAssistantChoices, organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices, currentInviteeId } from './state.js';
 
 // Removed local declarations for Choices instances - now managed via state.js
 
-export function setupModals() { // No longer receives choicesInstances as argument
+export function setupModals() {
   // Set up event listeners for the view and edit modals
   dom.editEventBtn.addEventListener('click', handleEditEventClick);
   dom.saveChangesBtn.addEventListener('click', handleSaveChangesClick);
@@ -34,7 +35,7 @@ export function handleEventClick(info) {
 
   console.time("populate DOM");
   setCurrentEventId(info.event.id);
-  setCurrentInviteeId(info.event.extendedProps.invitee_id || null);
+  setCurrentInviteeId(info.event.extendedProps.invitee_id || null); // Ensure invitee_id is captured here
 
   const statusRaw = info.event.extendedProps.event_status || '';
   const challengeRaw = info.event.extendedProps.challenge_area || '';
@@ -102,7 +103,7 @@ export function handleDateClick(info) {
 
 // --- Setup Edit Button within View Modal ---
 async function handleEditEventClick() {
-    const eventId = document.getElementById('editEventId').value; // Assuming eventId is stored here
+    const eventId = document.getElementById('editEventId').value;
     if (!eventId) return;
 
     console.time("Edit flow");
@@ -125,10 +126,22 @@ async function handleEditEventClick() {
         console.timeEnd("fetchEventDetail");
 
         console.time("fetchAndPopulateMembers");
-        const members = await fetchAndPopulateMembers(eventData.invitee_id); // Fetch members based on event invitee
+        // >>>>>>>>>> MODIFICATION HERE <<<<<<<<<<
+        // Use eventData.invitee_id if available, otherwise use the stored currentInviteeId
+        const inviteeIdToUse = eventData.invitee_id || currentInviteeId;
+
+        if (!inviteeIdToUse) {
+            console.error("Cannot fetch members: No invitee ID available from event data or state.");
+            alert("Could not determine invitee for this event.");
+            // Also reset button state if we can't proceed
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+            text.textContent = "Edit / View";
+            return; // Stop the process if inviteeId is missing
+        }
+        const members = await fetchAndPopulateMembers(inviteeIdToUse); // Use the determined inviteeId
         // populateChoicesDropdowns is called within fetchAndPopulateMembers
         console.timeEnd("fetchAndPopulateMembers");
-
 
         populateEditForm(eventData);
 
@@ -136,7 +149,8 @@ async function handleEditEventClick() {
         console.error("Edit failed:", err);
         alert("Could not load event for editing.");
     } finally {
-        console.timeEnd("Edit flow");
+        // Ensure button state is reset even on error after the initial fetch
+        // If there was an early return above, this might run anyway, which is fine.
         btn.disabled = false;
         spinner.classList.add('d-none');
         text.textContent = "Edit / View";
@@ -149,10 +163,12 @@ function populateEditForm(data) {
 
   populateTextFields(data);
   setDropdownSelections(data);
-  handleReadOnlyState(data, userUnitId, data.invitee_id); // Pass userUnitId and event's invitee_id
+  // Use the determined inviteeId for read-only state check
+  const inviteeIdForReadOnly = data.invitee_id || currentInviteeId;
+  handleReadOnlyState(data, userUnitId, inviteeIdForReadOnly); // Pass userUnitId and event's invitee_id or fallback
 
   // Need to manually enable/disable Choices instances based on read-only state
-  const isReadOnly = (data.status || data.event_status || '').toLowerCase() === 'concluded' || String(data.invitee_id) !== String(userUnitId);
+   const isReadOnly = (data.status || data.event_status || '').toLowerCase() === 'concluded' || String(inviteeIdForReadOnly) !== String(userUnitId);
    [organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices].forEach(choice => {
      if (choice) isReadOnly ? choice.disable() : choice.enable();
    });
@@ -192,21 +208,16 @@ async function fetchAndPopulateMembers(inviteeId) {
     console.log("Attempting to fetch and populate members for inviteeId:", inviteeId);
     let membersToUse = [];
 
-    // First, try to get members from the embedded data (membersData)
-    if (membersData && membersData.unit_members && membersData.group_members) {
-        if (String(inviteeId) === String(userUnitId)) {
-            membersToUse = membersData.unit_members.map(m => ({
-                value: m.id,
-                label: `${m.first_name} ${m.last_name}`
-            }));
-            console.log("Populating with unit members from embedded data.");
-        } else {
-             // For invitee IDs that are not the user's unit, always fetch from API for robustness
-             console.warn(`InviteeId ${inviteeId} is not the user's unit. Falling back to fetch members.`);
-             membersToUse = await fetchMembers(inviteeId); // Fallback to API fetch
-        }
+    // First, try to get members from the embedded data (membersData) if inviteeId is the user's unit
+    if (membersData && membersData.unit_members && String(inviteeId) === String(userUnitId)) {
+         membersToUse = membersData.unit_members.map(m => ({
+            value: m.id,
+            label: `${m.first_name} ${m.last_name}`
+        }));
+        console.log("Populating with unit members from embedded data.");
     } else {
-        console.warn("Embedded members data not fully available. Falling back to fetch members via API.");
+        // For any other inviteeId (including group IDs or if embedded unit data is missing), always fetch from API for robustness
+        console.warn(`InviteeId ${inviteeId} is not the user's unit OR embedded data is incomplete. Fetching members via API.`);
         membersToUse = await fetchMembers(inviteeId); // Fallback to API fetch
     }
 
@@ -216,7 +227,7 @@ async function fetchAndPopulateMembers(inviteeId) {
 }
 
 // This function initializes/resets the Choices instances for members and populates them
-export function populateChoicesDropdowns(members) { // <--- Added 'export' here
+export function populateChoicesDropdowns(members) {
     // Use createAndResetChoices from utils to handle initialization/resetting
     const org = createAndResetChoices("#editOrganiser", { removeItemButton: true });
     const leader = createAndResetChoices("#editLeaders", { removeItemButton: true });
