@@ -134,21 +134,30 @@ def delete_event(event_id: str, id_token: str) -> dict:
         print(f"[ERROR] Deleting event: {e}")
         raise
 
-def sanitise_json(obj, exclude_keys=None):
-    if exclude_keys is None:
-        exclude_keys = set()
 
-    if isinstance(obj, dict):                                                                                                                                                                                                                                                               print(f"[INFO] DICT sanitise_json: {obj}", flush=True)
+def sanitise_json(obj, exclude_keys=None, level=0):
+    """
+    Recursively sanitize strings in a JSON object.
+    - Only sanitizes string values at top level (level 0).
+    - Skips keys in `exclude_keys`.
+    """
+    exclude_keys = set(exclude_keys or [])
+
+    if isinstance(obj, dict):
         return {
-            k: sanitise_json(v, exclude_keys)
-            if k not in exclude_keys else v
+            k: sanitise_json(v, exclude_keys, level + 1)
+            if isinstance(v, (dict, list))
+            else (
+                html.escape(v.strip()) if isinstance(v, str) and k not in exclude_keys and level == 0
+                else v
+            )
             for k, v in obj.items()
         }
+
     elif isinstance(obj, list):
-        print(f"[INFO] LIST sanitise_json: {obj}", flush=True)  
-        return [sanitise_json(item, exclude_keys) for item in obj]
-    elif isinstance(obj, str):
-        print(f"[INFO] INSTANCE sanitise_json: {obj}", flush=True)  
-        return html.escape(obj.strip())
-    else:
-        return obj
+        return [
+            sanitise_json(item, exclude_keys, level + 1)
+            for item in obj
+        ]
+
+    return obj
