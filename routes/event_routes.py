@@ -99,23 +99,24 @@ def delete_event_route(event_id):
 @event_bp.route("/event/<event_id>")
 @login_required
 def get_event_detail(event_id):
-    """
-    Fetch a single event's details.
-    """
-    start = time.time()
     try:
         id_token = session["user"]["id_token"]
-        url      = urljoin(EVENTS_API_URL, f"/events/{event_id}")
-        headers  = create_auth_header(id_token, "application/json")
+        url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
+        headers = create_auth_header(id_token, "application/json")
 
         res = shared_client.get(url, headers=headers)
         res.raise_for_status()
 
-        event_data = res.json()
-        return jsonify(event_data)
+        return jsonify(res.json())
+    except KeyError:
+        return api_error("Session expired. Please log in again.", 401)
+    except httpx.HTTPStatusError as e:
+        print(f"[ERROR] Terrain API error: {e.response.status_code} - {e.response.text}")
+        return api_error(f"Terrain API returned {e.response.status_code}", e.response.status_code)
     except Exception as e:
-        print(f"[ERROR] Fetching event {event_id}: {e}")
-        return api_error("Failed to fetch event detail")
+        print(f"[ERROR] Unexpected error fetching event {event_id}: {e}")
+        return api_error("Unexpected error occurred", 500)
+
 
 
 @event_bp.route("/events")
