@@ -32,23 +32,13 @@ def create_event():
     """
     try:
         user     = session["user"]
-        print(f"[INFO] Creating event for user: {user}", flush=True)
         unit_id  = user["unit_id"]
-        print(f"[INFO] unit_id: {unit_id}", flush=True) 
         id_token = user["id_token"]
-        print(f"[INFO] id_token: {id_token}", flush=True)   
         raw      = request.get_json() or {}
-        print(f"[INFO] raw: {raw}", flush=True)
-
         payload = sanitise_json(raw)
-
-        print(f"[INFO] payload: {payload}", flush=True) 
         url     = urljoin(EVENTS_API_URL, f"/units/{unit_id}/events")
-        print(f"[INFO] url: {url}", flush=True)
         headers = create_auth_header(id_token, "application/json")
-        print(f"[INFO] headers: {headers}", flush=True)
         res     = shared_client.post(url, headers=headers, json=payload)
-        print(f"[INFO] res: {res}", flush=True)
         res.raise_for_status()
         return jsonify({"success": True})
     except Exception as e:
@@ -63,20 +53,9 @@ def patch_event(event_id):
     Update an existing event. Sanitizes any free-text fields.
     """
     try:
-        print(f"[INFO] Patching event {event_id}")
         id_token = session["user"]["id_token"]
-        print(f"[INFO] id_token: {id_token}")
         raw      = request.get_json() or {}
-        print(f"[INFO] raw: {raw}")
-        payload = {
-            "title":       sanitize_input(raw.get("title", "")),
-            "description": sanitize_input(raw.get("description", "")),
-            "location":    sanitize_input(raw.get("location", "")),
-            "start_datetime": raw.get("start_datetime"),
-            "end_datetime":   raw.get("end_datetime"),
-            # add other keys as needed
-        }
-
+        payload = sanitise_json(raw)
         updated = update_event(event_id, payload, id_token)
         return jsonify(updated)
     except Exception as e:
