@@ -1,7 +1,8 @@
 // apiService.js - Handles API interactions
 
 import { toTerrainDatetime } from './utils.js';
-import { userMemberName, userUnitId } from './state.js'; // Import necessary state
+import { userMemberName} from './state.js'; // Import necessary state
+import { getCurrentInviteeId } from './state.js';
 
 // --- API Interactions ---
 export async function fetchEvents(fetchInfo) {
