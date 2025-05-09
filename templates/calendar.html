@@ -43,6 +43,11 @@
   } | tojson | safe }}
 </script>
 
+<script>
+  window.userData = JSON.parse(document.getElementById('user-data').textContent);
+  window.membersData = JSON.parse(document.getElementById('members-data').textContent);
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js" defer></script>
 <script type="module" src="{{ url_for('static', filename='app.js') }}" defer></script>
 {% endblock %}
