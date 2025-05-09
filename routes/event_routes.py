@@ -13,7 +13,7 @@ from services.api_helpers import (
     api_error,
     get_member_events,
     update_event,
-    delete_event,
+    delete_event, sanitise_json
 )
 from config import EVENTS_API_URL
 
@@ -40,14 +40,8 @@ def create_event():
         raw      = request.get_json() or {}
         print(f"[INFO] raw: {raw}", flush=True)
 
-        payload = {
-            "title":       sanitize_input(raw.get("title", "")),
-            "description": sanitize_input(raw.get("description", "")),
-            "location":    sanitize_input(raw.get("location", "")),
-            "start_datetime": raw.get("start_datetime"),
-            "end_datetime":   raw.get("end_datetime"),
-            # include any other fields as needed, sanitized or raw
-        }
+        payload = sanitize_json(raw)
+        
         print(f"[INFO] payload: {payload}", flush=True) 
         url     = urljoin(EVENTS_API_URL, f"/units/{unit_id}/events")
         print(f"[INFO] url: {url}", flush=True)

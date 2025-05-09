@@ -1,6 +1,7 @@
 # services/api_helpers.py
 
 import httpx
+import html
 from flask import session
 from datetime import datetime, timedelta
 from urllib.parse import urljoin
@@ -132,3 +133,20 @@ def delete_event(event_id: str, id_token: str) -> dict:
     except httpx.HTTPError as e:
         print(f"[ERROR] Deleting event: {e}")
         raise
+
+def sanitise_json(obj, exclude_keys=None):
+    if exclude_keys is None:
+        exclude_keys = set()
+
+    if isinstance(obj, dict):
+        return {
+            k: sanitize_json(v, exclude_keys)
+            if k not in exclude_keys else v
+            for k, v in obj.items()
+        }
+    elif isinstance(obj, list):
+        return [sanitize_json(item, exclude_keys) for item in obj]
+    elif isinstance(obj, str):
+        return html.escape(obj.strip())
+    else:
+        return obj
