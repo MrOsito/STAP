@@ -40,8 +40,8 @@ def create_event():
         raw      = request.get_json() or {}
         print(f"[INFO] raw: {raw}", flush=True)
 
-        payload = sanitize_json(raw)
-        
+        payload = sanitise_json(raw)
+
         print(f"[INFO] payload: {payload}", flush=True) 
         url     = urljoin(EVENTS_API_URL, f"/units/{unit_id}/events")
         print(f"[INFO] url: {url}", flush=True)
