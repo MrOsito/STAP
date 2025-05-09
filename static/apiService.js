@@ -106,7 +106,7 @@ export function buildPatchPayload(currentInviteeId, organiserChoices, leaderChoi
     end_datetime: toTerrainDatetime(document.getElementById("editEnd").value),
     event_type: {
       type: "unit",
-      id: currentInviteeId // Use the passed inviteeId
+      id: getCurrentInviteeId() // Use the passed inviteeId
     },
     attendance: {
       leader_member_ids: leaderChoices?.getValue(true) || [],
