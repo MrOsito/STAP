@@ -20,6 +20,7 @@ export async function fetchEvents(fetchInfo) {
         'Content-Type': 'application/json'
       }
     });
+    console.log("Response from API:", res);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
