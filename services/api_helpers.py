@@ -138,8 +138,7 @@ def sanitise_json(obj, exclude_keys=None):
     if exclude_keys is None:
         exclude_keys = set()
 
-    if isinstance(obj, dict):
-                                                                                                                                                                                                                                                                                print(f"[INFO] DICT sanitise_json: {obj}", flush=True)
+    if isinstance(obj, dict):                                                                                                                                                                                                                                                               print(f"[INFO] DICT sanitise_json: {obj}", flush=True)
         return {
             k: sanitise_json(v, exclude_keys)
             if k not in exclude_keys else v
