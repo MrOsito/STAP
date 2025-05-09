@@ -48,10 +48,13 @@ def create_event():
             "end_datetime":   raw.get("end_datetime"),
             # include any other fields as needed, sanitized or raw
         }
-
+        print(f"[INFO] payload: {payload}", flush=True) 
         url     = urljoin(EVENTS_API_URL, f"/units/{unit_id}/events")
+        print(f"[INFO] url: {url}", flush=True)
         headers = create_auth_header(id_token, "application/json")
+        print(f"[INFO] headers: {headers}", flush=True)
         res     = shared_client.post(url, headers=headers, json=payload)
+        print(f"[INFO] res: {res}", flush=True)
         res.raise_for_status()
         return jsonify({"success": True})
     except Exception as e:
