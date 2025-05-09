@@ -6,41 +6,29 @@ import { getCurrentInviteeId } from './state.js';
 
 // --- API Interactions ---
 export async function fetchEvents(fetchInfo) {
-  const start = encodeURIComponent(fetchInfo.startStr);
-  const end = encodeURIComponent(fetchInfo.endStr);
-  const memberId = window.userData.member_id;
-  const token = window.userData.id_token;
-
-  const url = `https://api.terrainscouts.com/members/${memberId}/events?start_datetime=${start}&end_datetime=${end}`;
+  const url = `/events?start=${encodeURIComponent(fetchInfo.startStr)}&end=${encodeURIComponent(fetchInfo.endStr)}`;
+  const errorEl = document.getElementById('calendarError'); // Still need access to this DOM element
 
   try {
-    const res = await fetch(url, {
-      headers: {
-        Authorization: token,
-        'Content-Type': 'application/json'
-      }
-    });
-
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
 
-    return data.results.map(e => ({
-      id: e.id,
-      start: e.start_datetime,
-      end: e.end_datetime,
-      title: e.title,
-      invitee_name: e.invitee_name,
-      invitee_id: e.invitee_id,
-      event_status: e.status,
-      challenge_area: e.challenge_area,
-      section: e.section,
-    }));
-  } catch (err) {
-    console.error("Failed to fetch events:", err);
-    return [];
+    const events = await res.json();
+
+    if (!Array.isArray(events) || events.length === 0) {
+      console.warn("[Calendar] No events found or session expired.");
+       if (errorEl) errorEl.classList.remove('d-none');
+    } else {
+      if (errorEl) errorEl.classList.add('d-none');  // Hide error
+    }
+
+    return events;
+  } catch (error) {
+    console.error("[Calendar] Error fetching events:", error);
+     if (errorEl) errorEl.classList.remove('d-none');
+    throw error; // Re-throw to be handled by the caller (e.g., FullCalendar)
   }
 }
-
 
 export async function fetchEventDetail(eventId) {
     try {
