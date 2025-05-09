@@ -290,8 +290,9 @@ async function handleSaveChangesClick() {
     const eventId = mode === "edit" ? document.getElementById('editEventId').value : null; // Get event ID only in edit mode
     // Pass the Choices instances from state when building the payload
     const payload = buildPatchPayload(getCurrentInviteeId(), organiserChoices, leaderChoices, assistantChoices, challengeAreaChoices, scoutMethodChoices);
-
+    console.log("Payload to save:", payload);
     try {
+        console.log("Saving event with mode:", mode);
         await saveEvent(mode, eventId, payload);
         alert(`✅ Event ${mode === "create" ? "created" : "updated"} successfully!`);
         location.reload(); // Reload the page to refresh calendar

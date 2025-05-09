@@ -62,9 +62,11 @@ def patch_event(event_id):
     Update an existing event. Sanitizes any free-text fields.
     """
     try:
+        print(f"[INFO] Patching event {event_id}")
         id_token = session["user"]["id_token"]
+        print(f"[INFO] id_token: {id_token}")
         raw      = request.get_json() or {}
-
+        print(f"[INFO] raw: {raw}")
         payload = {
             "title":       sanitize_input(raw.get("title", "")),
             "description": sanitize_input(raw.get("description", "")),
