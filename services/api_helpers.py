@@ -139,14 +139,17 @@ def sanitise_json(obj, exclude_keys=None):
         exclude_keys = set()
 
     if isinstance(obj, dict):
+                                                                                                                                                                                                                                                                                print(f"[INFO] DICT sanitise_json: {obj}", flush=True)
         return {
-            k: sanitize_json(v, exclude_keys)
+            k: sanitise_json(v, exclude_keys)
             if k not in exclude_keys else v
             for k, v in obj.items()
         }
     elif isinstance(obj, list):
-        return [sanitize_json(item, exclude_keys) for item in obj]
+        print(f"[INFO] LIST sanitise_json: {obj}", flush=True)  
+        return [sanitise_json(item, exclude_keys) for item in obj]
     elif isinstance(obj, str):
+        print(f"[INFO] INSTANCE sanitise_json: {obj}", flush=True)  
         return html.escape(obj.strip())
     else:
         return obj
