@@ -32,9 +32,13 @@ def create_event():
     """
     try:
         user     = session["user"]
+        print(f"[INFO] Creating event for user: {user}", flush=True)
         unit_id  = user["unit_id"]
+        print(f"[INFO] unit_id: {unit_id}", flush=True) 
         id_token = user["id_token"]
+        print(f"[INFO] id_token: {id_token}", flush=True)   
         raw      = request.get_json() or {}
+        print(f"[INFO] raw: {raw}", flush=True)
 
         payload = {
             "title":       sanitize_input(raw.get("title", "")),
