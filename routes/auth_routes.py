@@ -40,9 +40,10 @@ def logout():
 def login_route():
     form = LoginForm()
     if form.validate_on_submit():
+        # Escape sanitized inputs
         branch    = escape(form.branch.data)
         username  = escape(form.username.data)
-        password  = form.password.data
+        password  = form.password.data  # password isn't echoed back
 
         try:
             import boto3
@@ -57,15 +58,25 @@ def login_route():
             )
             id_token = resp['AuthenticationResult']['IdToken']
 
-            # Store token and username only; profile will be fetched in JS
+            # fetch and store profile
+            profile_data = get_profiles(id_token)
+            profile = profile_data.get('profiles', [{}])[0]
+
             session['user'] = {
                 'username': f'{branch}{username}',
                 'id_token': id_token,
+                'member_id': profile.get('member', {}).get('id'),
+                'member_name': profile.get('member', {}).get('name'),
+                'unit_id': profile.get('unit', {}).get('id'),
+                'unit_name': profile.get('unit', {}).get('name'),
+                'group_id': profile.get('group', {}).get('id'),
+                'group_name': profile.get('group', {}).get('name'),
             }
             session.permanent = True
             return redirect(url_for('dashboard.dashboard'))
 
         except Exception as e:
+            # Always escape exception messages
             flash(escape(f"Login failed: {str(e)}"), 'danger')
             return redirect(url_for('auth.login_route'))
 

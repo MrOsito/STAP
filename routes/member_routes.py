@@ -42,14 +42,3 @@ def get_members():
         print(f"[ERROR] Fetching members: {e}")
         # Return an empty set on error
         return jsonify({"results": []}), 500
-
-
-@auth_bp.route('/profile')
-@login_required
-def get_profile():
-    try:
-        id_token = session["user"]["id_token"]
-        profile_data = get_profiles(id_token)
-        return jsonify(profile_data)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500

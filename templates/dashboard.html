@@ -1,104 +1,101 @@
 {% extends "base.html" %}
+
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-center align-items-center min-vh-75">
-  <div class="card shadow p-4" id="dashboardContent" style="width: 100%; max-width: 800px;">
-    <div class="text-center text-muted">Loading your profile...</div>
-  </div>
-</div>
-{% endblock %}
+  <div class="card shadow p-4" style="width: 100%; max-width: 800px;">
 
-{% block scripts %}
-<script>
-  async function loadUserProfile() {
-    try {
-      const res = await fetch('/profile');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      window.userProfile = data;
-      renderDashboard(data);
-    } catch (err) {
-      console.error("Failed to fetch user profile:", err);
-      document.getElementById('dashboardContent').innerHTML =
-        `<div class="text-danger text-center">Failed to load profile. Try again later.</div>`;
-    }
-  }
+    <h2 class="mb-4 text-center">Welcome, {{ user.member_name }}</h2>
 
-  function renderDashboard(profile) {
-    const user = profile.profiles?.[0]?.member || {};
-    const unit = profile.profiles?.[0]?.unit || {};
-    const group = profile.profiles?.[0]?.group || {};
-    const unitMembers = profile.profiles?.[0]?.unit_members || [];
-    const groupMembers = profile.profiles?.[0]?.group_members || [];
+    <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mb-4">
+        <a href="{{ url_for('dashboard.calendar') }}" class="btn btn-primary">Go to Calendar</a>
+        <a href="{{ url_for('dashboard.settings') }}" class="btn btn-secondary">Settings</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
+    </div>
 
-    const html = `
-      <h2 class="mb-4 text-center">Welcome, ${user.name || "Unknown"}</h2>
-
-      <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mb-4">
-        <a href="/calendar" class="btn btn-primary">Go to Calendar</a>
-        <a href="/settings" class="btn btn-secondary">Settings</a>
-        <a href="/logout" class="btn btn-danger">Logout</a>
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Member Details</h4>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <p><strong>Member Name:</strong> {{ user.member_name }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Member ID:</strong> {{ user.member_id }}</p>
+        </div>
       </div>
+    </div>
 
-      ${renderSection("Member Details", [
-        ["Member Name", user.name],
-        ["Member ID", user.id]
-      ])}
-
-      ${renderSection("Unit Details", [
-        ["Unit Name", unit.name],
-        ["Unit ID", unit.id],
-        ["Unit Section", unit.section],
-        ["Unit Roles", (unit.roles || []).join(", ")]
-      ])}
-
-      ${renderSection("Group Details", [
-        ["Group Name", group.name],
-        ["Group ID", group.id],
-        ["Group Roles", (group.roles || []).join(", ")]
-      ])}
-
-      ${renderMemberList("Unit Members", unitMembers)}
-      ${renderMemberList("Group Members", groupMembers)}
-    `;
-
-    document.getElementById('dashboardContent').innerHTML = html;
-  }
-
-  function renderSection(title, rows) {
-    const rowHtml = rows.map(([label, value]) => `
-      <div class="col-md-6"><p><strong>${label}:</strong> ${value || '—'}</p></div>
-    `).join("");
-    return `
-      <div class="mb-4">
-        <h4 class="text-primary border-bottom pb-2">${title}</h4>
-        <div class="row g-2">${rowHtml}</div>
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Unit Details</h4>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <p><strong>Unit Name:</strong> {{ user.unit_name }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Unit Section:</strong> {{ user.unit_section }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Unit Roles:</strong> {{ user.unit_roles }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Unit ID:</strong> {{ user.unit_id }}</p>
+        </div>
       </div>
-    `;
-  }
+    </div>
 
-  function renderMemberList(title, members) {
-    const listHtml = members.length
-      ? members.map(m => `
-          <div class="col-md-6 mb-2">
-            <strong>${m.first_name} ${m.last_name}</strong><br>
-            <small class="text-muted">ID: ${m.id}</small>
-          </div>`).join("")
-      : `<div class="col-12 text-muted">No ${title.toLowerCase()} found.</div>`;
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Group Details</h4>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <p><strong>Group Name:</strong> {{ user.group_name }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Group Roles:</strong> {{ user.group_roles }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Group ID:</strong> {{ user.group_id }}</p>
+        </div>
+      </div>
+    </div>
 
-    return `
-      <div class="mb-4">
-        <h4 class="text-primary border-bottom pb-2">${title}</h4>
-        <div class="card">
-          <div class="card-body">
-            <div class="row">${listHtml}</div>
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Unit Members</h4>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            {% for member in unit_members %}
+              <div class="col-md-6 mb-2">
+                <strong>{{ member.first_name }} {{ member.last_name }}</strong><br>
+                <small class="text-muted">ID: {{ member.id }}</small>
+              </div>
+            {% else %}
+              <div class="col-12 text-muted">No unit members found.</div>
+            {% endfor %}
           </div>
         </div>
       </div>
-    `;
-  }
+    </div>
 
-  document.addEventListener('DOMContentLoaded', loadUserProfile);
-</script>
+    <div class="mb-4">
+      <h4 class="text-primary border-bottom pb-2">Group Members</h4>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            {% for member in group_members %}
+              <div class="col-md-6 mb-2">
+                <strong>{{ member.first_name }} {{ member.last_name }}</strong><br>
+                <small class="text-muted">ID: {{ member.id }}</small>
+              </div>
+            {% else %}
+              <div class="col-12 text-muted">No group members found.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
 {% endblock %}
