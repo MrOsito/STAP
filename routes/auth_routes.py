@@ -72,7 +72,7 @@ def login_route():
 
     return render_template('login.html', form=form)
 
-
+'''
 @auth_bp.route('/profile')
 @login_required
 def get_profile():
@@ -81,4 +81,20 @@ def get_profile():
         profile_data = get_profiles(id_token)
         return jsonify(profile_data)
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+'''    
+
+@auth_bp.route('/profile')
+@login_required
+def get_profile():
+    try:
+        user = session.get("user", {})
+        print("[DEBUG] Session user:", user)
+        id_token = user.get("id_token")
+        if not id_token:
+            raise ValueError("Missing id_token in session")
+        profile_data = get_profiles(id_token)
+        return jsonify(profile_data)
+    except Exception as e:
+        print(f"[ERROR] /profile route: {e}")
         return jsonify({"error": str(e)}), 500
