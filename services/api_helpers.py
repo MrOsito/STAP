@@ -36,73 +36,12 @@ def get_profiles(id_token: str) -> dict:
     url = urljoin(MEMBERS_URL, "/profiles")
     headers = create_auth_header(id_token)
     try:
-        print(f"[DEBUG] Fetching profiles from URL: {url} with token: {id_token[:20]}...") # Log token start for verification
         res = shared_client.get(url, headers=headers)
-        res.raise_for_status() # Raises HTTPStatusError for 4xx/5xx responses
-        profile_data = res.json()
-        print(f"[DEBUG] Successfully fetched profiles: {str(profile_data)[:200]}...") # Log part of the response
-        return profile_data
-    except httpx.HTTPStatusError as e:
-        print(f"[ERROR] HTTPStatusError fetching profiles: {e.response.status_code} - {e.response.text}")
-        # Depending on how you want to handle this, you might return {} or re-raise
-        return {"error": f"API Error: {e.response.status_code}", "details": e.response.text, "profiles": []}
-    except httpx.RequestError as e:
-        print(f"[ERROR] RequestError fetching profiles: {e}")
-        return {"error": f"Request Error: {str(e)}", "profiles": []}
-    except Exception as e:
-        print(f"[ERROR] Unexpected error fetching profiles: {e}")
-        return {"error": f"Unexpected error: {str(e)}", "profiles": []}
-
-
-def get_essential_profile_details_from_response(profile_data: dict) -> dict:
-    """
-    Parses the profile data from the Members API to extract essential details.
-    Safely accesses nested data.
-    """
-    details = {
-        'member_id': None,
-        'member_name': None,
-        'unit_id': None,
-        'unit_name': None, # Added unit_name
-        'group_id': None,
-        'group_name': None # Added group_name
-    }
-    try:
-        if profile_data and isinstance(profile_data.get("profiles"), list) and profile_data["profiles"]:
-            profile_entry = profile_data["profiles"][0]  # Assuming the first profile
-
-            member_info = profile_entry.get("member", {})
-            if isinstance(member_info, dict):
-                details['member_id'] = member_info.get("id")
-                # Prefer 'name' if available, otherwise construct or leave as None
-                details['member_name'] = member_info.get("name") # This was 'name' in your dashboard example
-                # If 'name' is not available, you might use:
-                # first_name = member_info.get("first_name", "")
-                # last_name = member_info.get("last_name", "")
-                # details['member_name'] = f"{first_name} {last_name}".strip() if first_name or last_name else None
-
-
-            unit_info = profile_entry.get("unit", {})
-            if isinstance(unit_info, dict):
-                details['unit_id'] = unit_info.get("id")
-                details['unit_name'] = unit_info.get("name")
-
-            group_info = profile_entry.get("group", {})
-            if isinstance(group_info, dict):
-                details['group_id'] = group_info.get("id")
-                details['group_name'] = group_info.get("name")
-        else:
-            print("[WARNING] Profile data is empty, not a list, or not in expected format for essential details extraction.")
-            if profile_data and profile_data.get("error"):
-                 print(f"[WARNING] Profile data contained an error: {profile_data.get('error')}")
-
-
-    except (IndexError, TypeError, AttributeError) as e:
-        print(f"[ERROR] Parsing profile data for session: {e}")
-        # Log the error and return partially filled or empty details
-
-    print(f"[DEBUG] Extracted essential details: {details}")
-    return details
+        res.raise_for_status()
+        return res.json()
+    except httpx.HTTPError as e:
+        print(f"[ERROR] Fetching profiles: {e}")
+        return {}
 
 
 def fetch_members(id_token: str, entity_type: str, entity_id: str) -> list:
@@ -120,26 +59,23 @@ def fetch_members(id_token: str, entity_type: str, entity_id: str) -> list:
         return []
 
 
-# Ensure get_user_context uses the updated session['user'] structure
-def get_user_context(id_token: str, user_session_data: dict) -> dict:
+def get_user_context(id_token: str, unit_id: str, group_id: str) -> dict:
     """
-    Build the g.context dict for templates.
-    Now takes user_session_data which should contain unit_id, group_id etc.
+    Build the g.context dict for templates, including
+    lists of unit_members and group_members.
     """
-    unit_id = user_session_data.get("unit_id")
-    group_id = user_session_data.get("group_id")
-
     def slim_member_list(members):
         return [
-            {"id": m.get("id"), "first_name": m.get("first_name"), "last_name": m.get("last_name")}
+            {"id": m["id"], "first_name": m["first_name"], "last_name": m["last_name"]}
             for m in members
-        ] if members else []
+        ]
 
     unit_members = slim_member_list(fetch_members(id_token, "unit", unit_id)) if unit_id else []
     group_members = slim_member_list(fetch_members(id_token, "group", group_id)) if group_id else []
 
+    user = session.get("user", {})
     return {
-        "user": user_session_data, # Pass the whole user session data
+        "user": user,
         "unit_id": unit_id,
         "group_id": group_id,
         "unit_members": unit_members,
