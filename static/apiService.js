@@ -11,7 +11,7 @@ export async function fetchEvents(fetchInfo) {
   const memberId = window.userData.member_id;
   const token = window.userData.id_token;
 
-  const url = `https://api.terrainscouts.com/members/${memberId}/events?start_datetime=${start}&end_datetime=${end}`;
+  const url = `https://events.terrain.scouts.com.au/members/${memberId}/events?start_datetime=${start}&end_datetime=${end}`;
 
   try {
     const res = await fetch(url, {
