@@ -70,3 +70,14 @@ def login_route():
             return redirect(url_for('auth.login_route'))
 
     return render_template('login.html', form=form)
+
+
+@auth_bp.route('/profile')
+@login_required
+def get_profile():
+    try:
+        id_token = session["user"]["id_token"]
+        profile_data = get_profiles(id_token)
+        return jsonify(profile_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
