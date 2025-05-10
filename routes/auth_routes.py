@@ -1,5 +1,5 @@
 # routes/auth_routes.py
-from flask import Blueprint, session, redirect, url_for, flash, request, render_template
+from flask import Blueprint, session, redirect, url_for, flash, render_template, jsonify
 from flask_wtf import FlaskForm, CSRFProtect
 from markupsafe import escape
 from wtforms import StringField, PasswordField, SelectField
