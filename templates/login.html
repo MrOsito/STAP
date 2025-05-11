@@ -50,6 +50,10 @@
     .footer-links a:hover {
       text-decoration: underline;
     }
+    #errorMessage {
+      display: none;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -61,42 +65,30 @@
   <div class="login-card">
     <h2 class="text-center mb-3">Log in</h2>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="alert alert-danger" role="alert">
-          {% for category, message in messages %}
-            <div>{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+    <div id="errorMessage" class="alert alert-danger" role="alert"></div>
 
-    <form method="POST" action="{{ url_for('auth.login_route') }}" autocomplete="on" novalidate>
-      {{ form.hidden_tag() }}
-
+    <form id="loginForm" onsubmit="return handleLogin(event)">
       <div class="mb-3">
         <label for="branch" class="form-label">Select Branch</label>
-        {{ form.branch(class="form-select", id="branch") }}
-        {% if form.branch.errors %}
-          <div class="text-danger small">{{ form.branch.errors[0] }}</div>
-        {% endif %}
+        <select class="form-select" id="branch" required>
+          <option value="">-- Select --</option>
+          <option value="ACT-">ACT</option>
+          <option value="NSW-">NSW</option>
+          <option value="NT-">NT</option>
+          <option value="QLD-">QLD</option>
+          <option value="SA-">SA</option>
+          <option value="TAS-">TAS</option>
+        </select>
       </div>
 
       <div class="mb-3">
         <label for="username" class="form-label">Member Number</label>
-        {{ form.username(class="form-control", id="username", placeholder="Member Number", inputmode="numeric") }}
-        {% if form.username.errors %}
-          <div class="text-danger small">{{ form.username.errors[0] }}</div>
-        {% endif %}
+        <input type="text" class="form-control" id="username" placeholder="Member Number" inputmode="numeric" pattern="\d+" required>
       </div>
 
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        {{ form.password(class="form-control", id="password", placeholder="Password") }}
-        {% if form.password.errors %}
-          <div class="text-danger small">{{ form.password.errors[0] }}</div>
-        {% endif %}
+        <input type="password" class="form-control" id="password" placeholder="Password" required>
       </div>
 
       <button type="submit" class="btn btn-primary btn-login">Log In</button>
@@ -108,5 +100,35 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { loginToTerrain } from '/static/apiService.js';
+
+    window.handleLogin = async function(event) {
+      event.preventDefault();
+      
+      const errorMessage = document.getElementById('errorMessage');
+      const form = document.getElementById('loginForm');
+      const submitButton = form.querySelector('button[type="submit"]');
+      
+      try {
+        submitButton.disabled = true;
+        errorMessage.style.display = 'none';
+        
+        const branch = document.getElementById('branch').value;
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        await loginToTerrain(branch, username, password);
+        window.location.href = '/dashboard';
+      } catch (err) {
+        errorMessage.textContent = `Login failed: ${err.message}`;
+        errorMessage.style.display = 'block';
+      } finally {
+        submitButton.disabled = false;
+      }
+      
+      return false;
+    };
+  </script>
 </body>
 </html>
