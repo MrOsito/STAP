@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Login | Scouts Terrain</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@5.0.7/dist/aws-amplify.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.2.4/dist/amazon-cognito-identity.min.js"></script>
   <script src="/static/config.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     body {
       background-color: #08204f;
@@ -36,9 +36,6 @@
       margin-top: 1.5rem;
       width: 100%;
     }
-    .form-control:disabled {
-      background-color: #e9ecef;
-    }
     .footer-links {
       font-size: 0.85rem;
       margin-top: 1rem;
@@ -49,21 +46,18 @@
       text-decoration: none;
       margin: 0 0.5rem;
     }
-    .footer-links a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
   <div class="text-center">
-    <img src="/static/terrain-logo.svg" alt="Scouts Terrain Logo" class="logo">
+    <img src="/static/terrain-logo.svg" alt="Scouts Terrain Logo" class="logo" />
   </div>
   <div class="login-card">
     <h2 class="text-center mb-3">Log in</h2>
     <form id="loginForm" novalidate>
       <div class="mb-3">
         <label for="branch" class="form-label">Select Branch</label>
-        <select id="branch" class="form-select">
+        <select id="branch" class="form-select" required>
           <option value="">-- Select --</option>
           <option value="ACT-">ACT</option>
           <option value="NSW-">NSW</option>
@@ -71,15 +65,17 @@
           <option value="QLD-">QLD</option>
           <option value="SA-">SA</option>
           <option value="TAS-">TAS</option>
+          <option value="VIC-">VIC</option>
+          <option value="WA-">WA</option>
         </select>
       </div>
       <div class="mb-3">
         <label for="username" class="form-label">Member Number</label>
-        <input type="text" class="form-control" id="username" inputmode="numeric" required>
+        <input type="text" class="form-control" id="username" inputmode="numeric" required />
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" required>
+        <input type="password" class="form-control" id="password" required />
       </div>
       <button type="submit" class="btn btn-primary btn-login">Log In</button>
       <div id="loginError" class="text-danger small mt-2 d-none"></div>
@@ -90,30 +86,44 @@
   </div>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const Amplify = window.Amplify;
-      const { Auth } = Amplify;
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const branch = document.getElementById("branch").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorDiv = document.getElementById("loginError");
 
-      Amplify.configure({
-        Auth: {
-          region: window.cognitoConfig.region,
-          userPoolId: window.cognitoConfig.userPoolId,
-          userPoolWebClientId: window.cognitoConfig.clientId,
-        }
+      if (!branch || !username || !password) {
+        errorDiv.textContent = "All fields are required.";
+        errorDiv.classList.remove("d-none");
+        return;
+      }
+
+      const fullUsername = `${branch}${username}`;
+
+      const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+        Username: fullUsername,
+        Password: password,
       });
 
-      document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const branch = document.getElementById("branch").value;
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        const fullUsername = `${branch}${username}`;
-        const errorDiv = document.getElementById("loginError");
+      const poolData = {
+        UserPoolId: window.cognitoConfig.userPoolId,
+        ClientId: window.cognitoConfig.clientId,
+      };
 
-        try {
-          const user = await Auth.signIn(fullUsername, password);
-          const idToken = user.signInUserSession.idToken.jwtToken;
-          const accessToken = user.signInUserSession.accessToken.jwtToken;
+      const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+      const userData = {
+        Username: fullUsername,
+        Pool: userPool,
+      };
+
+      const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+      cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: function (result) {
+          const idToken = result.getIdToken().getJwtToken();
+          const accessToken = result.getAccessToken().getJwtToken();
 
           window.userData = {
             id_token: idToken,
@@ -123,12 +133,15 @@
 
           sessionStorage.setItem("id_token", idToken);
           errorDiv.classList.add("d-none");
+
+          // Redirect to calendar
           window.location.href = "/calendar";
-        } catch (err) {
-          console.error("Login error:", err);
-          errorDiv.textContent = err.message || "Login failed";
+        },
+        onFailure: function (err) {
+          console.error("Login failed:", err);
+          errorDiv.textContent = err.message || "Login failed.";
           errorDiv.classList.remove("d-none");
-        }
+        },
       });
     });
   </script>
