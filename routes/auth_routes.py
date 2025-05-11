@@ -1,5 +1,6 @@
 # routes/auth_routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify
+from config import CLIENT_ID, AWS_REGION
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -9,7 +10,9 @@ def login_route():
     """
     Render the login page. Authentication is now handled client-side.
     """
-    return render_template('login.html')
+    return render_template('login.html', 
+                         cognito_client_id=CLIENT_ID,
+                         aws_region=AWS_REGION)
 
 @auth_bp.route('/login', methods=['POST'])
 def store_session():

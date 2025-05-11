@@ -3,6 +3,15 @@
 import { toTerrainDatetime } from './utils.js';
 import { userMemberName} from './state.js'; // Import necessary state
 import { getCurrentInviteeId } from './state.js';
+import { CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
+
+// Cognito configuration
+const poolData = {
+    UserPoolId: 'ap-southeast-2_xxxxxxxx', // Replace with your User Pool ID
+    ClientId: 'xxxxxxxxxxxxxxxxxxxxxxxxxx'  // Replace with your App Client ID
+};
+
+const userPool = new CognitoUserPool(poolData);
 
 // --- API Interactions ---
 export async function fetchEvents(fetchInfo) {
@@ -171,54 +180,44 @@ export function buildPatchPayload(currentInviteeId, organiserChoices, leaderChoi
 
 // --- Authentication ---
 export async function loginToTerrain(branch, username, password) {
-  const url = 'https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_xxxxxxxx/oauth2/token';
-  
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: new URLSearchParams({
-        grant_type: 'password',
-        client_id: 'xxxxxxxxxxxxxxxxxxxxxxxxxx', // Your Cognito client ID
-        username: `${branch}${username}`,
-        password: password
-      })
-    });
+    try {
+        // Sign in using Amplify
+        const user = await window.Amplify.Auth.signIn(`${branch}${username}`, password);
+        
+        // Get the current session
+        const session = await window.Amplify.Auth.currentSession();
+        
+        // Store the tokens and user data
+        window.userData = {
+            id_token: session.getIdToken().getJwtToken(),
+            access_token: session.getAccessToken().getJwtToken(),
+            refresh_token: session.getRefreshToken().getToken(),
+            expires_in: session.getAccessToken().getExpiration(),
+            member_id: user.username,
+            member_name: user.attributes?.name || user.username,
+            unit_id: user.attributes?.['custom:unit_id'] || null,
+            unit_name: user.attributes?.['custom:unit_name'] || null,
+            group_id: user.attributes?.['custom:group_id'] || null,
+            group_name: user.attributes?.['custom:group_name'] || null
+        };
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error_description || `Login failed with status ${res.status}`);
+        // Store the data in the session via the server
+        const sessionRes = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(window.userData)
+        });
+
+        if (!sessionRes.ok) {
+            throw new Error('Failed to establish session');
+        }
+
+        // Redirect to dashboard
+        window.location.href = '/dashboard';
+    } catch (error) {
+        console.error('Login error:', error);
+        throw new Error(error.message || 'Authentication failed');
     }
-
-    const data = await res.json();
-    
-    // Store the token and user data in window.userData
-    window.userData = {
-      id_token: data.id_token,
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      expires_in: data.expires_in
-    };
-
-    // Store the data in the session via the server
-    const sessionRes = await fetch('/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(window.userData)
-    });
-
-    if (!sessionRes.ok) {
-      throw new Error('Failed to establish session');
-    }
-
-    // Redirect to dashboard
-    window.location.href = '/dashboard';
-  } catch (error) {
-    console.error('Login error:', error);
-    throw error;
-  }
 }
