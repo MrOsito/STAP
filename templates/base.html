@@ -34,7 +34,7 @@
         </ul>
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="#" onclick="handleLogout(event)">Logout</a>
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
           </li>
         </ul>
       </div>
@@ -52,15 +52,5 @@
 
   <!-- Page-specific JS -->
   {% block scripts %}{% endblock %}
-
-  <script>
-  function handleLogout(event) {
-    event.preventDefault();
-    // Clear the user data
-    window.userData = null;
-    // Redirect to login page
-    window.location.href = "{{ url_for('auth.login_route') }}";
-  }
-  </script>
 </body>
 </html>
