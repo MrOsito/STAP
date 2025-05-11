@@ -68,20 +68,33 @@ export async function fetchEventDetail(eventId) {
 
 
 export async function fetchMembers(inviteeId) {
-    console.log("Fetching members for inviteeId:", inviteeId);
     try {
-        const res = await fetch(`/members?invitee_id=${inviteeId}`);
+        const token = window.userData?.id_token;
+        if (!token) throw new Error("Missing user ID token");
+        if (!inviteeId) throw new Error("Missing invitee ID");
+
+        const url = `https://members.terrain.scouts.com.au/units/${inviteeId}/members`;
+        const res = await fetch(url, {
+            headers: {
+                "Authorization": token,
+                "Content-Type": "application/json"
+            }
+        });
+
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const data = await res.json();
+
         return (data.results || []).map(m => ({
             value: m.id,
-            label: `${m.first_name} ${m.last_name}`
+            label: `${m.first_name} ${m.last_name}`,
+            ...m,
         }));
     } catch (error) {
-        console.error("Error fetching members:", error);
+        console.error("Error fetching members from Terrain:", error);
         throw error;
     }
 }
+
 
 
 export async function saveEvent(mode, eventId, payload) {
