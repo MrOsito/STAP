@@ -171,15 +171,17 @@ export function buildPatchPayload(currentInviteeId, organiserChoices, leaderChoi
 
 // --- Authentication ---
 export async function loginToTerrain(branch, username, password) {
-  const url = 'https://auth.terrain.scouts.com.au/login';
+  const url = 'https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_xxxxxxxx/oauth2/token';
   
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
+        grant_type: 'password',
+        client_id: 'xxxxxxxxxxxxxxxxxxxxxxxxxx', // Your Cognito client ID
         username: `${branch}${username}`,
         password: password
       })
@@ -187,7 +189,7 @@ export async function loginToTerrain(branch, username, password) {
 
     if (!res.ok) {
       const errorData = await res.json();
-      throw new Error(errorData.message || `Login failed with status ${res.status}`);
+      throw new Error(errorData.error_description || `Login failed with status ${res.status}`);
     }
 
     const data = await res.json();
@@ -195,12 +197,9 @@ export async function loginToTerrain(branch, username, password) {
     // Store the token and user data in window.userData
     window.userData = {
       id_token: data.id_token,
-      member_id: data.member_id,
-      member_name: data.member_name,
-      unit_id: data.unit_id,
-      unit_name: data.unit_name,
-      group_id: data.group_id,
-      group_name: data.group_name
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_in: data.expires_in
     };
 
     // Store the data in the session via the server
