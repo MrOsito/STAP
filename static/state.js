@@ -12,24 +12,13 @@ export let assistantChoices;  // Will be initialized by utils or modalHandler
 export let scoutMethodChoices; // Will be initialized by utils or modalHandler
 export let challengeAreaChoices; // Will be initialized by utils or modalHandler
 
-// Helper function to safely get JSON data from an element
-function getJsonFromElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (!element) return null;
-    try {
-        return JSON.parse(element.textContent);
-    } catch (e) {
-        console.warn(`Failed to parse JSON from ${elementId}:`, e);
-        return null;
-    }
-}
 
-// Initial data from HTML - safely handle cases where elements don't exist
-export const userData = getJsonFromElement('user-data') || {};
-export const membersData = getJsonFromElement('members-data') || [];
-export const userUnitId = userData.unit_id || null;
-export const userMemberId = userData.member_id || null;
-export const userMemberName = userData.member_name || null;
+// Initial data from HTML
+export const userData = JSON.parse(document.getElementById('user-data').textContent);
+export const membersData = JSON.parse(document.getElementById('members-data').textContent); // Embedded member data
+export const userUnitId = userData.unit_id;
+export const userMemberId = userData.member_id;
+export const userMemberName = userData.member_name;
 
 // Cached DOM elements
 export const dom = {

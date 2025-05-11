@@ -185,11 +185,7 @@ export async function loginToTerrain(branch, username, password) {
       })
     });
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || `Login failed with status ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     
     // Store the token and user data in window.userData
@@ -203,23 +199,9 @@ export async function loginToTerrain(branch, username, password) {
       group_name: data.group_name
     };
 
-    // Store the data in the session via the server
-    const sessionRes = await fetch('/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(window.userData)
-    });
-
-    if (!sessionRes.ok) {
-      throw new Error('Failed to establish session');
-    }
-
-    // Redirect to dashboard
-    window.location.href = '/dashboard';
-  } catch (error) {
-    console.error('Login error:', error);
-    throw error;
+    return { success: true };
+  } catch (err) {
+    console.error("Login failed:", err);
+    throw err;
   }
 }
