@@ -28,7 +28,7 @@ def login_route():
         try:
             t_cognito_start = time.time()
 #            client = boto3.client("cognito-idp", region_name=AWS_REGION)
-            response = client.initiate_auth(
+            response = cognito_client.initiate_auth(
                 ClientId=CLIENT_ID,
                 AuthFlow="USER_PASSWORD_AUTH",
                 AuthParameters={"USERNAME": username, "PASSWORD": password}
