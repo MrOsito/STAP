@@ -60,9 +60,9 @@ def login_route():
             session.permanent = True
 
             t_end = time.time()
-            print(f"[TIMING] Total Login: {t_end - t_start:.2f}s")
-            print(f"[TIMING] Cognito: {t_cognito_end - t_cognito_start:.2f}s")
-            print(f"[TIMING] Fetch Profiles: {t_profile_end - t_profile_start:.2f}s")
+            print(f"[TIMING] Total Login: {t_end - t_start:.2f}s", flush=True)
+            print(f"[TIMING] Cognito: {t_cognito_end - t_cognito_start:.2f}s", flush=True)
+            print(f"[TIMING] Fetch Profiles: {t_profile_end - t_profile_start:.2f}s", flush=True)
 
             return redirect(url_for("dashboard.dashboard"))
 
