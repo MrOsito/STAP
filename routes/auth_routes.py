@@ -1,5 +1,6 @@
 from flask import Blueprint, session, redirect, url_for, flash, request, render_template
 from config import AWS_REGION, CLIENT_ID
+from services.aws_clients import cognito_client
 from services.api_helpers import get_profiles
 import time
 
@@ -26,7 +27,7 @@ def login_route():
 
         try:
             t_cognito_start = time.time()
-            client = boto3.client("cognito-idp", region_name=AWS_REGION)
+#            client = boto3.client("cognito-idp", region_name=AWS_REGION)
             response = client.initiate_auth(
                 ClientId=CLIENT_ID,
                 AuthFlow="USER_PASSWORD_AUTH",
