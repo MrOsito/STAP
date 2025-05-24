@@ -354,29 +354,29 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
       "Content-Type": "application/json"
     };
 
-    const fetchStartTime = performance.now(); // For more granular fetch timing
+//    const fetchStartTime = performance.now(); // For more granular fetch timing
 
     const res = await fetch(directApiUrl, {
       method: "GET",
       headers: headers
     });
 
-    const fetchEndTime = performance.now();
-    console.log(`[Calendar] Actual fetch to ${directApiUrl} took: ${(fetchEndTime - fetchStartTime).toFixed(2)} ms`);
+//    const fetchEndTime = performance.now();
+//    console.log(`[Calendar] Actual fetch to ${directApiUrl} took: ${(fetchEndTime - fetchStartTime).toFixed(2)} ms`);
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error(`[Calendar] API Error: ${res.status} ${res.statusText}`, errorText);
+//      console.error(`[Calendar] API Error: ${res.status} ${res.statusText}`, errorText);
       if (errorEl) errorEl.classList.remove('d-none');
       failureCallback(new Error(`API request failed: ${res.status}. ${errorText}`));
-      //console.timeEnd("fetchEventsExecution"); // End timer in case of error
+//      console.timeEnd("fetchEventsExecution"); // End timer in case of error
       return;
     }
 
     const apiResult = await res.json();
     const eventsFromApi = apiResult.results || [];
 
-    const formattingStartTime = performance.now();
+//    const formattingStartTime = performance.now();
     const formattedEvents = eventsFromApi.map(e => ({
       id: e.id || "",
       start: e.start_datetime || "",
@@ -390,8 +390,8 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
       invitee_name: e.invitee_name || "",
       group_id: e.group_id || ""
     }));
-    const formattingEndTime = performance.now();
-    console.log(`[Calendar] Event formatting took: ${(formattingEndTime - formattingStartTime).toFixed(2)} ms`);
+//    const formattingEndTime = performance.now();
+//    console.log(`[Calendar] Event formatting took: ${(formattingEndTime - formattingStartTime).toFixed(2)} ms`);
 
 
     if (formattedEvents.length === 0) {
