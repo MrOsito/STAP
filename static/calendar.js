@@ -341,7 +341,7 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
       console.error("[Calendar] User data, id_token, or member_id not available for API call.");
       if (errorEl) errorEl.classList.remove('d-none');
       failureCallback(new Error("User data not available for API call."));
-      console.timeEnd("fetchEventsExecution"); // End timer in case of early exit
+//      console.timeEnd("fetchEventsExecution"); // End timer in case of early exit
       return;
     }
 
@@ -407,8 +407,6 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
     console.error("[Calendar] Error fetching events directly from API:", error);
     if (errorEl) errorEl.classList.remove('d-none');
     failureCallback(error);
-  } finally {
-    console.timeEnd("fetchEventsExecution"); // End timer, ensures it's always called
   }
 }
 
