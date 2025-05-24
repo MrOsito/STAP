@@ -4,12 +4,13 @@ let unitMembers = [];
 let groupMembers = [];
 let organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices;
 
-
 const userData = JSON.parse(document.getElementById('user-data').textContent);
 const membersData = JSON.parse(document.getElementById('members-data').textContent);
 const userUnitId = userData.unit_id;
 const userMemberId = userData.member_id;
 const userMemberName = userData.member_name;
+const apiConfigData = JSON.parse(document.getElementById('api-config-data').textContent);
+const TERRAIN_EVENTS_API_URL = apiConfigData.EVENTS_API_URL;
 
 // Cached DOM elements
 const dom = {
@@ -325,28 +326,74 @@ function renderEventContent(arg) {
   return { domNodes: [wrapper] };
 }
 
-// --- Fetch Events from Backend ---
+// --- Fetch Events directly from Terrain ---
 async function fetchEvents(fetchInfo, successCallback, failureCallback) {
-  const url = `/events?start=${encodeURIComponent(fetchInfo.startStr)}&end=${encodeURIComponent(fetchInfo.endStr)}`;
   const errorEl = document.getElementById('calendarError');
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // Original backend logic for date parsing:
+    // start_iso = isoparse(start).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    // For simplicity, using JS Date toISOString which is already UTC.
+    // If more complex parsing like dateutil.parser is absolutely needed,
+    // you might need a JS equivalent or ensure dates are in expected ISO format.
+    const start_iso = new Date(fetchInfo.startStr).toISOString();
+    const end_iso = new Date(fetchInfo.endStr).toISOString();
 
-    const events = await res.json();
-
-    if (!Array.isArray(events) || events.length === 0) {
-      console.warn("[Calendar] No events found or session expired.");
+    if (!userData || !userData.id_token || !userData.member_id) {
+      console.error("[Calendar] User data, id_token, or member_id not available for API call.");
       if (errorEl) errorEl.classList.remove('d-none');
-    } else {
-      if (errorEl) errorEl.classList.add('d-none');  // Hide error
+      failureCallback(new Error("User data not available for API call."));
+      return;
     }
 
-    allEvents = events;
+    const directApiUrl = `<span class="math-inline">\{TERRAIN\_EVENTS\_API\_URL\}/members/</span>{userData.member_id}/events?start_datetime=<span class="math-inline">\{encodeURIComponent\(start\_iso\)\}&end\_datetime\=</span>{encodeURIComponent(end_iso)}`;
+
+    const headers = {
+      "Authorization": userData.id_token, // Confirm if "Bearer " prefix is needed
+      "Content-Type": "application/json"
+    };
+
+    const res = await fetch(directApiUrl, {
+      method: "GET",
+      headers: headers
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[Calendar] API Error: ${res.status} ${res.statusText}`, errorText);
+      if (errorEl) errorEl.classList.remove('d-none');
+      failureCallback(new Error(`API request failed: ${res.status}. ${errorText}`));
+      return;
+    }
+
+    const apiResult = await res.json();
+    const eventsFromApi = apiResult.results || []; // Matches api_helpers.py logic
+
+    // Replicate formatting from event_routes.py
+    const formattedEvents = eventsFromApi.map(e => ({
+      id: e.id || "",
+      start: e.start_datetime || "",
+      end: e.end_datetime || "",
+      title: e.title || "",
+      invitee_type: e.invitee_type || "",
+      event_status: e.status || "", // Flask route maps 'status' to 'event_status'
+      challenge_area: e.challenge_area || "",
+      section: e.section || "",
+      invitee_id: e.invitee_id || "",
+      invitee_name: e.invitee_name || "",
+      group_id: e.group_id || ""
+    }));
+
+    if (formattedEvents.length === 0) {
+      console.warn("[Calendar] No events found from direct API call.");
+    }
+    if (errorEl) errorEl.classList.add('d-none'); // Hide error on success or no events
+
+    allEvents = formattedEvents;
     populateInviteeFilter();
     successCallback(filterEvents());
+
   } catch (error) {
-    console.error("[Calendar] Error fetching events:", error);
+    console.error("[Calendar] Error fetching events directly from API:", error);
     if (errorEl) errorEl.classList.remove('d-none');
     failureCallback(error);
   }
