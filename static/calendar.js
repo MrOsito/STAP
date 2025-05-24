@@ -327,14 +327,13 @@ function renderEventContent(arg) {
 }
 
 // --- Fetch Events directly from Terrain ---
+// In static/calendar.js
+
 async function fetchEvents(fetchInfo, successCallback, failureCallback) {
+  console.time("fetchEventsExecution"); // Start timer
+
   const errorEl = document.getElementById('calendarError');
   try {
-    // Original backend logic for date parsing:
-    // start_iso = isoparse(start).astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
-    // For simplicity, using JS Date toISOString which is already UTC.
-    // If more complex parsing like dateutil.parser is absolutely needed,
-    // you might need a JS equivalent or ensure dates are in expected ISO format.
     const start_iso = new Date(fetchInfo.startStr).toISOString();
     const end_iso = new Date(fetchInfo.endStr).toISOString();
 
@@ -342,51 +341,63 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
       console.error("[Calendar] User data, id_token, or member_id not available for API call.");
       if (errorEl) errorEl.classList.remove('d-none');
       failureCallback(new Error("User data not available for API call."));
+      console.timeEnd("fetchEventsExecution"); // End timer in case of early exit
       return;
     }
 
-    const directApiUrl = `<span class="math-inline">\{TERRAIN\_EVENTS\_API\_URL\}/members/</span>{userData.member_id}/events?start_datetime=<span class="math-inline">\{encodeURIComponent\(start\_iso\)\}&end\_datetime\=</span>{encodeURIComponent(end_iso)}`;
+    // Add this log to see the URL being fetched
+    const directApiUrl = `${TERRAIN_EVENTS_API_URL}/members/${userData.member_id}/events?start_datetime=${encodeURIComponent(start_iso)}&end_datetime=${encodeURIComponent(end_iso)}`;
+    console.log("[Calendar] Fetching events from URL:", directApiUrl); // Log the URL
 
     const headers = {
-      "Authorization": userData.id_token, // Confirm if "Bearer " prefix is needed
+      "Authorization": userData.id_token,
       "Content-Type": "application/json"
     };
+
+    const fetchStartTime = performance.now(); // For more granular fetch timing
 
     const res = await fetch(directApiUrl, {
       method: "GET",
       headers: headers
     });
 
+    const fetchEndTime = performance.now();
+    console.log(`[Calendar] Actual fetch to ${directApiUrl} took: ${(fetchEndTime - fetchStartTime).toFixed(2)} ms`);
+
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`[Calendar] API Error: ${res.status} ${res.statusText}`, errorText);
       if (errorEl) errorEl.classList.remove('d-none');
       failureCallback(new Error(`API request failed: ${res.status}. ${errorText}`));
+      console.timeEnd("fetchEventsExecution"); // End timer in case of error
       return;
     }
 
     const apiResult = await res.json();
-    const eventsFromApi = apiResult.results || []; // Matches api_helpers.py logic
+    const eventsFromApi = apiResult.results || [];
 
-    // Replicate formatting from event_routes.py
+    const formattingStartTime = performance.now();
     const formattedEvents = eventsFromApi.map(e => ({
       id: e.id || "",
       start: e.start_datetime || "",
       end: e.end_datetime || "",
       title: e.title || "",
       invitee_type: e.invitee_type || "",
-      event_status: e.status || "", // Flask route maps 'status' to 'event_status'
+      event_status: e.status || "",
       challenge_area: e.challenge_area || "",
       section: e.section || "",
       invitee_id: e.invitee_id || "",
       invitee_name: e.invitee_name || "",
       group_id: e.group_id || ""
     }));
+    const formattingEndTime = performance.now();
+    console.log(`[Calendar] Event formatting took: ${(formattingEndTime - formattingStartTime).toFixed(2)} ms`);
+
 
     if (formattedEvents.length === 0) {
       console.warn("[Calendar] No events found from direct API call.");
     }
-    if (errorEl) errorEl.classList.add('d-none'); // Hide error on success or no events
+    if (errorEl) errorEl.classList.add('d-none');
 
     allEvents = formattedEvents;
     populateInviteeFilter();
@@ -396,6 +407,8 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
     console.error("[Calendar] Error fetching events directly from API:", error);
     if (errorEl) errorEl.classList.remove('d-none');
     failureCallback(error);
+  } finally {
+    console.timeEnd("fetchEventsExecution"); // End timer, ensures it's always called
   }
 }
 
