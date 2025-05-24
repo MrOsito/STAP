@@ -10,7 +10,7 @@ def dashboard():
     context = g.context.copy()
     context['TERRAIN_EVENTS_API_URL'] = EVENTS_API_URL
     context['TERRAIN_MEMBERS_API_URL'] = MEMBERS_URL
-    return render_template("dashboard.html", **g.context)
+    return render_template("dashboard.html", **context)
 
 @dashboard_bp.route("/calendar")
 @login_required
