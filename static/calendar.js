@@ -330,7 +330,7 @@ function renderEventContent(arg) {
 // In static/calendar.js
 
 async function fetchEvents(fetchInfo, successCallback, failureCallback) {
-  console.time("fetchEventsExecution"); // Start timer
+  //console.time("fetchEventsExecution"); // Start timer
 
   const errorEl = document.getElementById('calendarError');
   try {
@@ -347,7 +347,7 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
 
     // Add this log to see the URL being fetched
     const directApiUrl = `${TERRAIN_EVENTS_API_URL}/members/${userData.member_id}/events?start_datetime=${encodeURIComponent(start_iso)}&end_datetime=${encodeURIComponent(end_iso)}`;
-    console.log("[Calendar] Fetching events from URL:", directApiUrl); // Log the URL
+    //console.log("[Calendar] Fetching events from URL:", directApiUrl); // Log the URL
 
     const headers = {
       "Authorization": userData.id_token,
@@ -369,7 +369,7 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
       console.error(`[Calendar] API Error: ${res.status} ${res.statusText}`, errorText);
       if (errorEl) errorEl.classList.remove('d-none');
       failureCallback(new Error(`API request failed: ${res.status}. ${errorText}`));
-      console.timeEnd("fetchEventsExecution"); // End timer in case of error
+      //console.timeEnd("fetchEventsExecution"); // End timer in case of error
       return;
     }
 
@@ -767,12 +767,22 @@ async function fetchMembersAndPopulateSelects(inviteeId) {
 // --- Startup ---
 function initializeApp() {
   console.log("Initializing Calendar...");
+  console.time("initCalendar");
   initCalendar();
+  console.timeEnd("initCalendar");
+  console.time("setupEditEventButton");
   setupEditEventButton();
+  console.timeEnd("setupEditEventButton");
+  console.time("setupSaveButton");
   setupSaveButton();
+  console.timeEnd("setupSaveButton");
+  console.time("initStaticChoiceDropdowns");
   initStaticChoiceDropdowns();
+  console.timeEnd("initStaticChoiceDropdowns");
+  console.time("unitMembers");
   unitMembers = membersData.unit_members.map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` }));
   populateMemberChoices(unitMembers);
+  console.timeEnd("unitMembers");
   console.log("Initialization complete.");
 }
 
