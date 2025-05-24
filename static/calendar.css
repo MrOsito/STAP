@@ -1,9 +1,13 @@
+/* STAP/static/calendar.css */
+
 /* Calendar container */
 #calendar {
-  position: relative; /* important for absolute spinner */
+  position: relative; /* This is crucial for absolute positioning of child elements */
   font-size: 0.8rem;
   max-width: 100%;
   margin: auto;
+  min-height: 400px; /* Optional: Give a minimum height so the spinner has space to overlay,
+                         especially if the calendar could be empty initially. Adjust as needed. */
 }
 
 /* FullCalendar day frame */
@@ -53,13 +57,18 @@
   cursor: pointer;
 }
 
-/* Loading Spinner */
-.calendar-loader {
+/* --- MODIFIED SPINNER STYLING --- */
+#calendarLoader {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust for exact centering */
+  z-index: 1000; /* Ensure it's on top of calendar content */
+  /* Optional: Add a subtle background to the spinner area if desired */
+  /* background-color: rgba(255, 255, 255, 0.8); */
+  /* padding: 20px; */
+  /* border-radius: 8px; */
 }
+
+/* The old .calendar-loader CSS can be removed or adapted if you prefer class-based toggling */
+/* .calendar-loader { ... } */
