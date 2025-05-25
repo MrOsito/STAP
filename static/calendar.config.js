@@ -14,7 +14,8 @@ export function setAssistantChoices(choices) { assistantChoices = choices; }
 export function setLeaderChoices(choices) { leaderChoices = choices; }
 export function setScoutMethodChoices(instance) { scoutMethodChoices = instance; }
 export function setChallengeAreaChoices(instance) { challengeAreaChoices = instance; } // <<< THIS IS THE MISSING EXPORT
-
+export function setUnitMembers(members) { unitMembers = members; }
+export function setGroupMembers(members) { groupMembers = members; }
 
 
 // ... and so on for other choice instances and unitMembers/groupMembers if they are modified externally.
