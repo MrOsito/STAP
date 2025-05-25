@@ -101,6 +101,34 @@ export async function fetchEvents(fetchInfo, successCallback, failureCallback) {
 }
 
 
+export async function getEventDetailsAPI(eventId) {
+  if (!eventId) {
+    console.error("getEventDetailsAPI: No event ID provided.");
+    return Promise.reject(new Error("No event ID provided"));
+  }
+
+  const directApiUrl = `${TERRAIN_EVENTS_API_URL}/events/${eventId}`;
+  console.log(`[API] Fetching event details from: ${directApiUrl}`);
+  const headers = {
+    "Authorization": userData.id_token, // Uses config for token
+    "Content-Type": "application/json" // Usually good to include, though GET might not strictly need it
+  };
+
+  console.log(`[API] Fetching event details from: ${directApiUrl}`);
+  const response = await fetch(directApiUrl, {
+    method: "GET",
+    headers: headers
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[API] Error fetching event details ${eventId}: ${response.status}`, errorText);
+    throw new Error(`Failed to fetch event details: ${response.status} ${errorText}`);
+  }
+  return response.json(); // Return the parsed JSON directly
+}
+
+
 
 
 export function saveNewEvent() {
@@ -223,3 +251,6 @@ export function buildPatchPayload() {
     status: "planned"
   };
 }
+
+
+

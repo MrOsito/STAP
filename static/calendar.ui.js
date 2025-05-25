@@ -8,7 +8,7 @@ import {
     fetchMembersAndPopulateSelects, resetDropdowns,
     populateTextFields, setDropdownSelections
 } from './calendar.choices.js';
-import { saveNewEvent, saveEditedEvent, deleteEventAPI } from './calendar.api.js'; // Import API functions
+import { getEventDetailsAPI, saveNewEvent, saveEditedEvent, deleteEventAPI } from './calendar.api.js'; // Import API functions
 // import bootstrap from 'bootstrap'; // If using npm
 
  
@@ -106,33 +106,26 @@ export function setupEditEventButton() {
     console.time("Total Edit Flow");
 
     console.time("fetchMembersAndPopulateSelects");
-    fetchMembersAndPopulateSelects(currentInviteeId)
+    fetchMembersAndPopulateSelects(currentInviteeId) // currentInviteeId should be available from config
       .then(() => {
         console.timeEnd("fetchMembersAndPopulateSelects");
-
-        console.time("fetchEvent");
-        return fetch(`/event/${currentEventId}`);
+        console.time("fetchEventDetails");
+        return getEventDetailsAPI(currentEventId); // This promise resolves directly to the parsed JSON
       })
-      .then(res => {
-        console.timeEnd("fetchEvent");
-
-        console.time("parseJSON");
-        return res.json();
-      })
-      .then(data => {
-        console.timeEnd("parseJSON");
+      .then(data => { // 'data' is now the actual event details object (already parsed JSON)
+        console.timeEnd("fetchEventDetails"); // Adjusted log
+        // The .then(res => res.json()) step has been removed.
 
         console.time("populateEditForm");
-        populateEditForm(data);
+        populateEditForm(data); // Pass the data directly to populateEditForm
         console.timeEnd("populateEditForm");
       })
       .catch(err => {
-        console.error("Edit failed:", err);
+        console.error("Edit failed:", err); // This will now catch errors from getEventDetailsAPI or populateEditForm
         alert("Could not load event for editing.");
       })
       .finally(() => {
         console.timeEnd("Total Edit Flow");
-
         btn.disabled = false;
         spinner.classList.add('d-none');
         text.textContent = "Edit / View";
