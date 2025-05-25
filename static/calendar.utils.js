@@ -26,7 +26,7 @@ export function formatCamelCase(text) {
   return text.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-export function resetChoices(instance, selector, options = {}) {
+export function resetChoicesInstance(instance, selector, options = {}) {
   if (instance) instance.destroy();
   return new Choices(selector, options);
 }
