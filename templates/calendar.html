@@ -47,6 +47,11 @@
   } | tojson | safe }}
 </script>
 
+<script id="api-config-data" type="application/json">...</script>
+
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-<script src="{{ url_for('static', filename='calendar.js') }}"></script>
+
+<script type="module" src="{{ url_for('static', filename='calendar.main.js') }}"></script>
+
+
 {% endblock %}
