@@ -10,6 +10,9 @@ export function setAllEvents(events) { allEvents = events; }
 export function setCurrentEventId(id) { currentEventId = id; }
 export function setCurrentInviteeId(id) { currentInviteeId = id; }
 export function setOrganiserChoices(choices) { organiserChoices = choices; }
+export function setLeaderChoices(choices) { assistantChoices = choices; }
+export function setLeaderChoices(choices) { leaderChoices = choices; }
+
 // ... and so on for other choice instances and unitMembers/groupMembers if they are modified externally.
 
 
