@@ -13,13 +13,6 @@ import { saveNewEvent, saveEditedEvent, deleteEventAPI } from './calendar.api.js
 
  
 
-export function filterEvents() {
-  const selectedInvitee = document.getElementById('inviteeFilter')?.value || "";
-  if (!selectedInvitee) {
-    return [...allEvents];
-  }
-  return allEvents.filter(event => event.invitee_name === selectedInvitee);
-}
 
 export function setupEditModalHeader() {
   document.getElementById('eventEditModalLabel').textContent = "Edit Event";

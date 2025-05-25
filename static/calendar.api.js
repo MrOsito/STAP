@@ -7,7 +7,14 @@ import {
 } from './calendar.config.js';
 import { populateInviteeFilter } from './calendar.init.js';
 import { toTerrainDatetime } from './calendar.utils.js';
-import { filterEvents } from './calendar.ui.js';
+
+export function filterEvents() {
+  const selectedInvitee = document.getElementById('inviteeFilter')?.value || "";
+  if (!selectedInvitee) {
+    return [...allEvents];
+  }
+  return allEvents.filter(event => event.invitee_name === selectedInvitee);
+}
 
 
 export async function fetchEvents(fetchInfo, successCallback, failureCallback) {
