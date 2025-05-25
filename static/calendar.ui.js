@@ -24,7 +24,7 @@ export function setupEditModalHeader() {
 export function handleDateClick(info) {
   console.log("Clicked date:", info.dateStr);
 
-  setCurrentInviteeId = userUnitId;
+  setCurrentInviteeId(userUnitId);
 
   dom.eventEditModalLabel.textContent = "Create New Event";
   dom.deleteEventBtn.classList.add('d-none');
