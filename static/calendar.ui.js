@@ -15,8 +15,8 @@ import { saveNewEvent, saveEditedEvent, deleteEventAPI } from './calendar.api.js
 
 
 export function setupEditModalHeader() {
-  document.getElementById('eventEditModalLabel').textContent = "Edit Event";
-  document.getElementById('deleteEventBtn').classList.remove('d-none');
+  dom.eventEditModalLabel.textContent = "Edit Event";
+  dom.deleteEventBtn.classList.remove('d-none');
 }
 
 
@@ -56,28 +56,28 @@ export function handleEventClick(info) {
 
     console.time("populate DOM");
 
-  setCurrentEventId = info.event.id;
-  setCurrentInviteeId = info.event.extendedProps.invitee_id || null;
+  setCurrentEventId(info.event.id); // Call the function
+  setCurrentInviteeId(info.event.extendedProps.invitee_id || null); // Call this function too
 
   const statusRaw = info.event.extendedProps.event_status || '';
   const challengeRaw = info.event.extendedProps.challenge_area || '';
 
-  document.getElementById('eventModalLabel').textContent = info.event.title;
-  document.getElementById('eventStart').textContent = new Date(info.event.start).toLocaleString();
-  document.getElementById('eventEnd').textContent = new Date(info.event.end).toLocaleString();
-  document.getElementById('eventStatus').textContent = formatCamelCase(statusRaw);
-  document.getElementById('eventChallenge').textContent = formatCamelCase(challengeRaw);
-  document.getElementById('eventInvitee').textContent = info.event.extendedProps.invitee_name || '';
+  dom.eventModalLabel.textContent = info.event.title;
+  dom.eventStart.textContent = new Date(info.event.start).toLocaleString();
+  dom.eventEnd.textContent = new Date(info.event.end).toLocaleString();
+  dom.eventStatus.textContent = formatCamelCase(statusRaw);
+  dom.eventChallenge.textContent = formatCamelCase(challengeRaw);
+  dom.eventInvitee.textContent = info.event.extendedProps.invitee_name || '';
 
   // You can still store the raw values elsewhere if needed
-  document.getElementById('eventStatus').dataset.raw = statusRaw;
-  document.getElementById('eventChallenge').dataset.raw = challengeRaw;
+  dom.eventStatus.dataset.raw = statusRaw;
+  dom.eventChallenge.dataset.raw = challengeRaw;
 
   // Clear event ID
-  document.getElementById('editEventId').value = '';
+  dom.editEventId.value = '';
 
   // Hide Delete button
-  document.getElementById('deleteEventBtn').classList.add('d-none');
+  dom.deleteEventBtn.classList.add('d-none');
   console.timeEnd("populate DOM");
 
   console.time("show modal");
@@ -95,9 +95,9 @@ export function setupEditEventButton() {
   dom.editEventBtn.addEventListener('click', () => {
     if (!currentEventId) return;
 
-    const btn = document.getElementById('editEventBtn');
-    const spinner = document.getElementById('editBtnSpinner');
-    const text = document.getElementById('editBtnText');
+    const btn = dom.editEventBtn;
+    const spinner = dom.editBtnSpinner;
+    const text = dom.editBtnText;
 
     btn.disabled = true;
     spinner.classList.remove('d-none');
@@ -147,7 +147,7 @@ export function populateEditForm(data) {
   setDropdownSelections(data);
   handleReadOnlyState(data);
 
-  new bootstrap.Modal(document.getElementById('eventEditModal')).show();
+  new bootstrap.Modal(dom.eventEditModal).show();
 }
 
 // --- Handle Read-Only Mode ---
@@ -157,7 +157,7 @@ export function handleReadOnlyState(data) {
   const wrongInvitee = String(currentInviteeId) !== String(userUnitId);
   const isReadOnly = isConcluded || wrongInvitee;
 
-  const reasonEl = document.getElementById('readOnlyReason');
+  const reasonEl = dom.readOnlyReason;
 
   if (isReadOnly) {
     reasonEl.textContent = isConcluded
@@ -175,7 +175,7 @@ export function handleReadOnlyState(data) {
     if (choice) isReadOnly ? choice.disable() : choice.enable();
   });
 
-  document.getElementById('saveChangesBtn').disabled = isReadOnly;
+  dom.saveChangesBtn.disabled = isReadOnly;
 }
 
 
@@ -194,18 +194,23 @@ export function setupSaveButton() {
 
 
 // Add event listener for delete button here, calling the API function
-dom.deleteEventBtn.addEventListener('click', () => {
-    if (!currentEventId) return alert("No event selected for deletion.");
-    if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
-        deleteEventAPI(currentEventId) // from api.js
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to delete event from UI call"); // or check res.json() if API returns JSON
-                alert("✅ Event deleted successfully!");
-                location.reload();
-            })
-            .catch(err => {
-                console.error("Delete error (from UI):", err);
-                alert("Could not delete event.");
-            });
-    }
-});
+if (dom.deleteEventBtn) { // Good practice to check if element exists
+    dom.deleteEventBtn.addEventListener('click', () => {
+        if (!currentEventId) return alert("No event selected for deletion.");
+        if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+            deleteEventAPI(currentEventId)
+                .then(res => {
+                    if (!res.ok) {
+                        // Try to get more error info
+                        return res.text().then(text => { throw new Error(`Failed to delete: ${res.status} ${text}`); });
+                    }
+                    alert("✅ Event deleted successfully!");
+                    location.reload();
+                })
+                .catch(err => {
+                    console.error("Delete error (from UI):", err);
+                    alert(`Could not delete event. ${err.message || err}`);
+                });
+        }
+    });
+}
