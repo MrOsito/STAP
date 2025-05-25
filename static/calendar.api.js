@@ -87,7 +87,9 @@ export async function fetchEvents(fetchInfo, successCallback, failureCallback) {
     }
     if (errorEl) errorEl.classList.add('d-none');
 
-    setAllEvents = formattedEvents;
+    //setAllEvents = formattedEvents;
+    setAllEvents(formattedEvents); 
+
     populateInviteeFilter();
     successCallback(filterEvents());
 
