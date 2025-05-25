@@ -86,18 +86,18 @@ export async function fetchAndPopulateMembers(inviteeId) {
     }
 }
 
-
-
 export function populateChoicesDropdowns(members) {
-    if (organiserChoices) organiserChoices.destroy();
-    if (leaderChoices) leaderChoices.destroy();
-    if (assistantChoices) assistantChoices.destroy();
-    organiserChoices = new Choices("#editOrganiser", { removeItemButton: true });
-    leaderChoices = new Choices("#editLeaders", { removeItemButton: true });
-    assistantChoices = new Choices("#editAssistants", { removeItemButton: true });
-    organiserChoices.setChoices(members, 'value', 'label', true);
-    leaderChoices.setChoices(members, 'value', 'label', true);
-    assistantChoices.setChoices(members, 'value', 'label', true);
+    const newOrganiser = resetChoicesInstance(organiserChoices, "#editOrganiser", { removeItemButton: true });
+    newOrganiser.setChoices(members, 'value', 'label', true);
+    setOrganiserChoices(newOrganiser);
+
+    const newLeader = resetChoicesInstance(leaderChoices, "#editLeaders", { removeItemButton: true });
+    newLeader.setChoices(members, 'value', 'label', true);
+    setLeaderChoices(newLeader);
+
+    const newAssistant = resetChoicesInstance(assistantChoices, "#editAssistants", { removeItemButton: true });
+    newAssistant.setChoices(members, 'value', 'label', true);
+    setAssistantChoices(newAssistant);
 }
 
 
@@ -132,13 +132,23 @@ export function resetDropdowns() {
 
 // --- Fetch Members ---
 export function populateMemberChoices(members) {
-    organiserChoices = resetChoicesInstance(organiserChoices, "#editOrganiser", { removeItemButton: true });
-    leaderChoices = resetChoicesInstance(leaderChoices, "#editLeaders", { removeItemButton: true });
-    assistantChoices = resetChoicesInstance(assistantChoices, "#editAssistants", { removeItemButton: true });
+    // For organiserChoices
+    // 1. Create new instance, store in a local const
+    const newOrganiserInstance = resetChoicesInstance(organiserChoices, "#editOrganiser", { removeItemButton: true });
+    // 2. Set choices on the new instance
+    newOrganiserInstance.setChoices(members, 'value', 'label', true);
+    // 3. Update the shared reference in calendar.config.js using the setter
+    setOrganiserChoices(newOrganiserInstance);
 
-    organiserChoices.setChoices(members, 'value', 'label', true);
-    leaderChoices.setChoices(members, 'value', 'label', true);
-    assistantChoices.setChoices(members, 'value', 'label', true);
+    // For leaderChoices (this corresponds to the problematic line 135)
+    const newLeaderInstance = resetChoicesInstance(leaderChoices, "#editLeaders", { removeItemButton: true });
+    newLeaderInstance.setChoices(members, 'value', 'label', true);
+    setLeaderChoices(newLeaderInstance); // Use the imported setter function
+
+    // For assistantChoices
+    const newAssistantInstance = resetChoicesInstance(assistantChoices, "#editAssistants", { removeItemButton: true });
+    newAssistantInstance.setChoices(members, 'value', 'label', true);
+    setAssistantChoices(newAssistantInstance);
 }
 
 export async function fetchMembersAndPopulateSelects(inviteeId) {
