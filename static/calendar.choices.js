@@ -1,35 +1,35 @@
+// static/calendar.choices.js
 import {
+    dom, // <<<< ADD 'dom' TO YOUR IMPORTS FROM CONFIG
     challengeAreaList, scoutMethodList, membersData, userData,
     setOrganiserChoices, setLeaderChoices, setAssistantChoices,
-    setChallengeAreaChoices, setScoutMethodChoices, // setters for choice instances
-    organiserChoices, leaderChoices, assistantChoices, // direct let exports from config
+    setChallengeAreaChoices, setScoutMethodChoices,
+    organiserChoices, leaderChoices, assistantChoices,
     challengeAreaChoices, scoutMethodChoices,
-    TERRAIN_MEMBERS_API_URL // Assuming this is added to config.js and exported
+    TERRAIN_MEMBERS_API_URL
 } from './calendar.config.js';
 import { formatCamelCase, toLocalDatetimeInputValue, resetChoicesInstance } from './calendar.utils.js';
 
-
-// --- PREPOULATE CHOICES ---
-
 export function initStaticChoiceDropdowns() {
   console.log("Defining and initializing static choice dropdowns...");
-  const newChallengeAreaChoices = new Choices("#editChallengeArea", { removeItemButton: true });
+  if (challengeAreaChoices) challengeAreaChoices.destroy();
+  const newChallengeAreaChoices = new Choices(dom.editChallengeArea, { removeItemButton: true }); // Use dom
   newChallengeAreaChoices.setChoices(challengeAreaList.map(e => ({ value: e, label: formatCamelCase(e) })), 'value', 'label', true);
-  setChallengeAreaChoices(newChallengeAreaChoices); // Update shared instance
+  setChallengeAreaChoices(newChallengeAreaChoices);
 
-  const newScoutMethodChoices = new Choices("#editScoutMethod", { removeItemButton: true, searchEnabled: false });
+  if (scoutMethodChoices) scoutMethodChoices.destroy();
+  const newScoutMethodChoices = new Choices(dom.editScoutMethod, { removeItemButton: true, searchEnabled: false }); // Use dom
   newScoutMethodChoices.setChoices(scoutMethodList.map(e => ({ value: e, label: formatCamelCase(e) })), 'value', 'label', true);
-  setScoutMethodChoices(newScoutMethodChoices); // Update shared instance
+  setScoutMethodChoices(newScoutMethodChoices);
   console.log("Static choice dropdowns initialization complete.");
 }
 
-
 export function populateTextFields(data) {
-  document.getElementById('editTitle').value = data.title || '';
-  document.getElementById('editLocation').value = data.location || '';
-  document.getElementById('editDescription').value = data.description || '';
-  document.getElementById('editStart').value = data.start_datetime ? toLocalDatetimeInputValue(data.start_datetime) : '';
-  document.getElementById('editEnd').value = data.end_datetime ? toLocalDatetimeInputValue(data.end_datetime) : '';
+  dom.editTitle.value = data.title || ''; // Use dom
+  dom.editLocation.value = data.location || ''; // Use dom
+  dom.editDescription.value = data.description || ''; // Use dom
+  dom.editStart.value = data.start_datetime ? toLocalDatetimeInputValue(data.start_datetime) : ''; // Use dom
+  dom.editEnd.value = data.end_datetime ? toLocalDatetimeInputValue(data.end_datetime) : ''; // Use dom
 }
 
 export function setDropdownSelections(data) {
@@ -44,9 +44,6 @@ export function setDropdownSelections(data) {
   }
 }
 
-
-
-// Fetch Members and Cache Them
 export async function fetchAndPopulateMembers(inviteeId) {
     console.log("Attempting to populate members from embedded data.");
     if (membersData && membersData.unit_members && membersData.group_members) {
@@ -58,7 +55,6 @@ export async function fetchAndPopulateMembers(inviteeId) {
             }));
             console.log("Populating with unit members from embedded data.");
         } else {
-            // Assuming inviteeId might correspond to a group ID
             membersToUse = membersData.group_members.map(m => ({
                 value: m.id,
                 label: `${m.first_name} ${m.last_name}`
@@ -66,10 +62,15 @@ export async function fetchAndPopulateMembers(inviteeId) {
             console.log("Populating with group members from embedded data.");
         }
         populateChoicesDropdowns(membersToUse);
-        // We don't need to return anything as populateChoicesDropdowns does the work
     } else {
         console.warn("Embedded members data not found. Falling back to fetch.");
         try {
+            // Decision: Keep this fetch to Flask backend OR refactor to direct Terrain API
+            // For now, keeping existing Flask backend call.
+            // If changing to direct Terrain API:
+            // const directApiUrl = `${TERRAIN_MEMBERS_API_URL}/units/${inviteeId}/members`; // Adjust endpoint as needed
+            // const headers = { "Authorization": userData.id_token };
+            // const res = await fetch(directApiUrl, { headers });
             const res = await fetch(`/members?invitee_id=${inviteeId}`);
             if (!res.ok) throw new Error(`HTTP error ${res.status}`);
             const data = await res.json();
@@ -79,7 +80,6 @@ export async function fetchAndPopulateMembers(inviteeId) {
             }));
             populateChoicesDropdowns(members);
             console.log("Members fetched successfully.");
-            // Optionally, you could update membersData here if needed for future calls
         } catch (error) {
             console.error("Error fetching members:", error);
         }
@@ -87,81 +87,65 @@ export async function fetchAndPopulateMembers(inviteeId) {
 }
 
 export function populateChoicesDropdowns(members) {
-    const newOrganiser = resetChoicesInstance(organiserChoices, "#editOrganiser", { removeItemButton: true });
+    const newOrganiser = resetChoicesInstance(organiserChoices, dom.editOrganiser, { removeItemButton: true }); // Use dom
     newOrganiser.setChoices(members, 'value', 'label', true);
     setOrganiserChoices(newOrganiser);
 
-    const newLeader = resetChoicesInstance(leaderChoices, "#editLeaders", { removeItemButton: true });
+    const newLeader = resetChoicesInstance(leaderChoices, dom.editLeaders, { removeItemButton: true }); // Use dom
     newLeader.setChoices(members, 'value', 'label', true);
     setLeaderChoices(newLeader);
 
-    const newAssistant = resetChoicesInstance(assistantChoices, "#editAssistants", { removeItemButton: true });
+    const newAssistant = resetChoicesInstance(assistantChoices, dom.editAssistants, { removeItemButton: true }); // Use dom
     newAssistant.setChoices(members, 'value', 'label', true);
     setAssistantChoices(newAssistant);
 }
-
 
 export function resetDropdowns() {
   if (challengeAreaChoices) challengeAreaChoices.destroy();
   if (scoutMethodChoices) scoutMethodChoices.destroy();
 
-  challengeAreaChoices = new Choices("#editChallengeArea", { removeItemButton: true });
-  scoutMethodChoices = new Choices("#editScoutMethod", {
-    removeItemButton: true,
-    searchEnabled: false
-  });
-
-  challengeAreaChoices.setChoices(
+  const newChallengeAreaInstance = new Choices(dom.editChallengeArea, { removeItemButton: true }); // Use dom
+  newChallengeAreaInstance.setChoices(
     challengeAreaList.map(e => ({ value: e, label: formatCamelCase(e) })),
     'value', 'label', true
   );
+  setChallengeAreaChoices(newChallengeAreaInstance);
 
-  scoutMethodChoices.setChoices(
+  const newScoutMethodInstance = new Choices(dom.editScoutMethod, { // Use dom
+    removeItemButton: true,
+    searchEnabled: false
+  });
+  newScoutMethodInstance.setChoices(
     scoutMethodList.map(e => ({ value: e, label: formatCamelCase(e) })),
     'value', 'label', true
   );
+  setScoutMethodChoices(newScoutMethodInstance);
 
-  // Clear previous selections
-  [organiserChoices, leaderChoices, assistantChoices, challengeAreaChoices, scoutMethodChoices].forEach(choice => {
-    if (choice) {
-      choice.removeActiveItems();
-      choice.removeHighlightedItems();
-    }
+  [
+    organiserChoices, leaderChoices, assistantChoices,
+    challengeAreaChoices, scoutMethodChoices
+  ].forEach(choice => {
+    if (choice) choice.removeActiveItems();
   });
 }
 
-// --- Fetch Members ---
 export function populateMemberChoices(members) {
-    // For organiserChoices
-    // 1. Create new instance, store in a local const
-    const newOrganiserInstance = resetChoicesInstance(organiserChoices, "#editOrganiser", { removeItemButton: true });
-    // 2. Set choices on the new instance
+    const newOrganiserInstance = resetChoicesInstance(organiserChoices, dom.editOrganiser, { removeItemButton: true }); // Use dom
     newOrganiserInstance.setChoices(members, 'value', 'label', true);
-    // 3. Update the shared reference in calendar.config.js using the setter
     setOrganiserChoices(newOrganiserInstance);
 
-    // For leaderChoices (this corresponds to the problematic line 135)
-    const newLeaderInstance = resetChoicesInstance(leaderChoices, "#editLeaders", { removeItemButton: true });
+    const newLeaderInstance = resetChoicesInstance(leaderChoices, dom.editLeaders, { removeItemButton: true }); // Use dom
     newLeaderInstance.setChoices(members, 'value', 'label', true);
-    setLeaderChoices(newLeaderInstance); // Use the imported setter function
+    setLeaderChoices(newLeaderInstance);
 
-    // For assistantChoices
-    const newAssistantInstance = resetChoicesInstance(assistantChoices, "#editAssistants", { removeItemButton: true });
+    const newAssistantInstance = resetChoicesInstance(assistantChoices, dom.editAssistants, { removeItemButton: true }); // Use dom
     newAssistantInstance.setChoices(members, 'value', 'label', true);
     setAssistantChoices(newAssistantInstance);
 }
 
 export async function fetchMembersAndPopulateSelects(inviteeId) {
     try {
-        // Safely access membersData and its properties
-        const membersDataElement = document.getElementById('members-data');
-        if (!membersDataElement) {
-            console.warn("members-data script tag not found!");
-            return; // Or handle this more gracefully (e.g., fetch from the server)
-        }
-
-        const membersData = JSON.parse(membersDataElement.textContent);
-
+        // Use the imported membersData from calendar.config.js
         if (membersData && membersData.unit_members && membersData.group_members) {
             const isGroup = String(inviteeId) !== String(userData.unit_id);
             const members = isGroup
@@ -171,15 +155,14 @@ export async function fetchMembersAndPopulateSelects(inviteeId) {
             populateMemberChoices(members);
             return members;
         } else {
-            console.warn("Incomplete members data found.");
-            // Optionally, you could fetch from the server here as a fallback
-            // and call populateMemberChoices with the fetched data
+            console.warn("Incomplete members data found (using imported membersData). Will try to fetch if necessary or return empty.");
+            // If fetchAndPopulateMembers is the primary way to get members when not embedded,
+            // you might call it here, or ensure it's called appropriately elsewhere.
+            // For now, just returning empty array as per original fallback logic.
             return [];
         }
-
     } catch (error) {
-        console.error("Error processing members data:", error);
-        // Handle the error appropriately (e.g., display a message to the user)
+        console.error("Error processing members data in fetchMembersAndPopulateSelects:", error);
         return [];
     }
 }
