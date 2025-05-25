@@ -27,9 +27,7 @@ def get_profiles(id_token):
         return {}
 
 def fetch_members(id_token, entity_type, entity_id):
-    print("[DEBUG] Fetching members")
     url = urljoin(MEMBERS_URL, f"/{entity_type}s/{entity_id}/members")
-    print("[DEBUG] URL:", url)
     headers = create_auth_header(id_token, "application/json")
     try:
         with httpx.Client(timeout=10.0) as client:
