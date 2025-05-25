@@ -107,7 +107,8 @@ export async function getEventDetailsAPI(eventId) {
     return Promise.reject(new Error("No event ID provided"));
   }
 
-  const directApiUrl = `<span class="math-inline">\{TERRAIN\_EVENTS\_API\_URL\}/events/</span>{eventId}`; // Uses config
+  const directApiUrl = `${TERRAIN_EVENTS_API_URL}/events/${eventId}`;
+  console.log(`[API] Fetching event details from: ${directApiUrl}`);
   const headers = {
     "Authorization": userData.id_token, // Uses config for token
     "Content-Type": "application/json" // Usually good to include, though GET might not strictly need it
