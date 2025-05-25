@@ -42,13 +42,12 @@ def fetch_members(id_token, entity_type, entity_id):
 def get_user_context(id_token, unit_id, group_id):
     def slim_member_list(members):
         return [{"id": m["id"], "first_name": m["first_name"], "last_name": m["last_name"]} for m in members]
-    print("I'm getting member data again?")
-    print(time.time(), flush=True)
+    start_time = datetime.now()
     unit_members = slim_member_list(fetch_members(id_token, "unit", unit_id)) if unit_id else []
-    print(time.time(), flush=True)
     group_members = slim_member_list(fetch_members(id_token, "group", group_id)) if group_id else []
-    print(time.time(), flush=True)
-
+    end_time = datetime.now()
+    print(f"Fetched members: {end_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+    
     user = session.get("user", {})
     return {
         "user": user,
