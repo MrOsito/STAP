@@ -132,9 +132,9 @@ export function resetDropdowns() {
 
 // --- Fetch Members ---
 export function populateMemberChoices(members) {
-    organiserChoices = resetChoices(organiserChoices, "#editOrganiser", { removeItemButton: true });
-    leaderChoices = resetChoices(leaderChoices, "#editLeaders", { removeItemButton: true });
-    assistantChoices = resetChoices(assistantChoices, "#editAssistants", { removeItemButton: true });
+    organiserChoices = resetChoicesInstance(organiserChoices, "#editOrganiser", { removeItemButton: true });
+    leaderChoices = resetChoicesInstance(leaderChoices, "#editLeaders", { removeItemButton: true });
+    assistantChoices = resetChoicesInstance(assistantChoices, "#editAssistants", { removeItemButton: true });
 
     organiserChoices.setChoices(members, 'value', 'label', true);
     leaderChoices.setChoices(members, 'value', 'label', true);
