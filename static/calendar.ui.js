@@ -8,7 +8,7 @@ import {
     fetchMembersAndPopulateSelects, resetDropdowns,
     populateTextFields, setDropdownSelections
 } from './calendar.choices.js';
-import { saveNewEvent, saveEditedEvent, deleteEventAPI } from './calendar.api.js'; // Import API functions
+import { getEventDetailsAPI, saveNewEvent, saveEditedEvent, deleteEventAPI } from './calendar.api.js'; // Import API functions
 // import bootstrap from 'bootstrap'; // If using npm
 
  
@@ -111,7 +111,7 @@ export function setupEditEventButton() {
         console.timeEnd("fetchMembersAndPopulateSelects");
 
         console.time("fetchEvent");
-        return fetch(`/event/${currentEventId}`);
+        return getEventDetailsAPI(currentEventId); // Call the new direct API function
       })
       .then(res => {
         console.timeEnd("fetchEvent");

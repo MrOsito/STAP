@@ -12,36 +12,6 @@ from config import EVENTS_API_URL
 
 event_bp = Blueprint("event", __name__)
 
-@event_bp.route("/event/<event_id>")
-@login_required
-def get_event_detail(event_id):
-    start = time.time()
-    try:
-        id_token = session["user"]["id_token"]
-        token_time = time.time()
-
-        url = urljoin(EVENTS_API_URL, f"/events/{event_id}")
-        headers = create_auth_header(id_token, "application/json")
-        with httpx.Client(timeout=10.0) as client:
-            res = client.get(url, headers=headers)
-            res.raise_for_status()
-        fetch_time = time.time()
-
-        event_data = res.json()
-        parse_time = time.time()
-
-        print(f"[DEBUG] Event size: {len(str(event_data))} characters", flush=True) 
-        print(f"TIMING: token={token_time-start:.3f}s fetch={fetch_time-token_time:.3f}s parse={parse_time-fetch_time:.3f}s", flush=True)
-
-        response = jsonify(event_data)
-        end_time = time.time()
-        print(f"[DEBUG] jsonify() complete in {end_time - parse_time:.3f}s", flush=True)
-
-        return response
-    except httpx.HTTPError as e:
-        print(f"[ERROR] Fetching event {event_id}: {e}")
-        return api_error("Failed to fetch event detail")
-    
 
 @event_bp.route("/event/<event_id>", methods=["PATCH"])
 @login_required
