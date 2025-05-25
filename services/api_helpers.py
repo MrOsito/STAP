@@ -46,7 +46,7 @@ def get_user_context(id_token, unit_id, group_id):
     unit_members = slim_member_list(fetch_members(id_token, "unit", unit_id)) if unit_id else []
     group_members = slim_member_list(fetch_members(id_token, "group", group_id)) if group_id else []
     end_time = datetime.now()
-    print(f"Fetched members: {end_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+    print(f"Fetched members: {end_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}", flush=True)
     
     user = session.get("user", {})
     return {
