@@ -4,12 +4,13 @@ let unitMembers = [];
 let groupMembers = [];
 let organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices;
 
-
 const userData = JSON.parse(document.getElementById('user-data').textContent);
 const membersData = JSON.parse(document.getElementById('members-data').textContent);
 const userUnitId = userData.unit_id;
 const userMemberId = userData.member_id;
 const userMemberName = userData.member_name;
+const apiConfigData = JSON.parse(document.getElementById('api-config-data').textContent);
+const TERRAIN_EVENTS_API_URL = apiConfigData.EVENTS_API_URL;
 
 // Cached DOM elements
 const dom = {
@@ -325,28 +326,85 @@ function renderEventContent(arg) {
   return { domNodes: [wrapper] };
 }
 
-// --- Fetch Events from Backend ---
+// --- Fetch Events directly from Terrain ---
+// In static/calendar.js
+
 async function fetchEvents(fetchInfo, successCallback, failureCallback) {
-  const url = `/events?start=${encodeURIComponent(fetchInfo.startStr)}&end=${encodeURIComponent(fetchInfo.endStr)}`;
+  //console.time("fetchEventsExecution"); // Start timer
+
   const errorEl = document.getElementById('calendarError');
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const start_iso = new Date(fetchInfo.startStr).toISOString();
+    const end_iso = new Date(fetchInfo.endStr).toISOString();
 
-    const events = await res.json();
-
-    if (!Array.isArray(events) || events.length === 0) {
-      console.warn("[Calendar] No events found or session expired.");
+    if (!userData || !userData.id_token || !userData.member_id) {
+      console.error("[Calendar] User data, id_token, or member_id not available for API call.");
       if (errorEl) errorEl.classList.remove('d-none');
-    } else {
-      if (errorEl) errorEl.classList.add('d-none');  // Hide error
+      failureCallback(new Error("User data not available for API call."));
+//      console.timeEnd("fetchEventsExecution"); // End timer in case of early exit
+      return;
     }
 
-    allEvents = events;
+    // Add this log to see the URL being fetched
+    const directApiUrl = `${TERRAIN_EVENTS_API_URL}/members/${userData.member_id}/events?start_datetime=${encodeURIComponent(start_iso)}&end_datetime=${encodeURIComponent(end_iso)}`;
+    //console.log("[Calendar] Fetching events from URL:", directApiUrl); // Log the URL
+
+    const headers = {
+      "Authorization": userData.id_token,
+      "Content-Type": "application/json"
+    };
+
+//    const fetchStartTime = performance.now(); // For more granular fetch timing
+
+    const res = await fetch(directApiUrl, {
+      method: "GET",
+      headers: headers
+    });
+
+//    const fetchEndTime = performance.now();
+//    console.log(`[Calendar] Actual fetch to ${directApiUrl} took: ${(fetchEndTime - fetchStartTime).toFixed(2)} ms`);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+//      console.error(`[Calendar] API Error: ${res.status} ${res.statusText}`, errorText);
+      if (errorEl) errorEl.classList.remove('d-none');
+      failureCallback(new Error(`API request failed: ${res.status}. ${errorText}`));
+//      console.timeEnd("fetchEventsExecution"); // End timer in case of error
+      return;
+    }
+
+    const apiResult = await res.json();
+    const eventsFromApi = apiResult.results || [];
+
+//    const formattingStartTime = performance.now();
+    const formattedEvents = eventsFromApi.map(e => ({
+      id: e.id || "",
+      start: e.start_datetime || "",
+      end: e.end_datetime || "",
+      title: e.title || "",
+      invitee_type: e.invitee_type || "",
+      event_status: e.status || "",
+      challenge_area: e.challenge_area || "",
+      section: e.section || "",
+      invitee_id: e.invitee_id || "",
+      invitee_name: e.invitee_name || "",
+      group_id: e.group_id || ""
+    }));
+//    const formattingEndTime = performance.now();
+//    console.log(`[Calendar] Event formatting took: ${(formattingEndTime - formattingStartTime).toFixed(2)} ms`);
+
+
+    if (formattedEvents.length === 0) {
+      console.warn("[Calendar] No events found from direct API call.");
+    }
+    if (errorEl) errorEl.classList.add('d-none');
+
+    allEvents = formattedEvents;
     populateInviteeFilter();
     successCallback(filterEvents());
+
   } catch (error) {
-    console.error("[Calendar] Error fetching events:", error);
+    console.error("[Calendar] Error fetching events directly from API:", error);
     if (errorEl) errorEl.classList.remove('d-none');
     failureCallback(error);
   }
@@ -707,12 +765,22 @@ async function fetchMembersAndPopulateSelects(inviteeId) {
 // --- Startup ---
 function initializeApp() {
   console.log("Initializing Calendar...");
+  console.time("initCalendar");
   initCalendar();
+  console.timeEnd("initCalendar");
+  console.time("setupEditEventButton");
   setupEditEventButton();
+  console.timeEnd("setupEditEventButton");
+  console.time("setupSaveButton");
   setupSaveButton();
+  console.timeEnd("setupSaveButton");
+  console.time("initStaticChoiceDropdowns");
   initStaticChoiceDropdowns();
+  console.timeEnd("initStaticChoiceDropdowns");
+  console.time("unitMembers");
   unitMembers = membersData.unit_members.map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` }));
   populateMemberChoices(unitMembers);
+  console.timeEnd("unitMembers");
   console.log("Initialization complete.");
 }
 
