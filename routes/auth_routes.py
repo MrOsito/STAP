@@ -26,21 +26,13 @@ def login_route():
         password = request.form["password"]
 
         try:
-            t_cognito_start = time.time()
-#            client = boto3.client("cognito-idp", region_name=AWS_REGION)
             response = cognito_client.initiate_auth(
                 ClientId=CLIENT_ID,
                 AuthFlow="USER_PASSWORD_AUTH",
                 AuthParameters={"USERNAME": username, "PASSWORD": password}
             )
-            t_cognito_end = time.time()
-
             id_token = response['AuthenticationResult']['IdToken']
-
-            t_profile_start = time.time()
             profile_data = get_profiles(id_token)
-            t_profile_end = time.time()
-
             profile = profile_data.get("profiles", [{}])[0]
 
             session["user"] = {
@@ -58,12 +50,22 @@ def login_route():
                 "group_roles": profile.get("group", {}).get("roles"),
             }
 
-            session.permanent = True
+            if session.get("user"):
+                user_details = session["user"]
+                initial_context = get_user_context(
+                    id_token=user_details.get("id_token"),
+                    unit_id=user_details.get("unit_id"),
+                    group_id=user_details.get("group_id")
+                )
+                session["user_context_cached"] = {
+                    "unit_members": initial_context.get("unit_members"),
+                    "group_members": initial_context.get("group_members")
+                    # Add any other parts of the context from get_user_context
+                    # that are expensive to fetch and safe to cache in session.
+                }
+                print("[DEBUG] User context cached in session during login.") # For debugging
 
-            t_end = time.time()
-            print(f"[TIMING] Total Login: {t_end - t_start:.2f}s", flush=True)
-            print(f"[TIMING] Cognito: {t_cognito_end - t_cognito_start:.2f}s", flush=True)
-            print(f"[TIMING] Fetch Profiles: {t_profile_end - t_profile_start:.2f}s", flush=True)
+            session.permanent = True
 
             return redirect(url_for("dashboard.dashboard"))
 

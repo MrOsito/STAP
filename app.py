@@ -32,14 +32,41 @@ def load_user_context():
     user = session.get("user")
     if user:
         session.permanent = True
-        g.context = get_user_context(user.get("id_token"), user.get("unit_id"), user.get("group_id"))
+        cached_context_data = session.get("user_context_cached")
+        if cached_context_data:
+            # Combine basic user info with cached context data
+            g.context = {
+                "user": user,
+                "unit_members": cached_context_data.get("unit_members"),
+                "group_members": cached_context_data.get("group_members"),
+                # Ensure all keys expected by templates are present
+                "unit_id": user.get("unit_id"), # from basic user session
+                "group_id": user.get("group_id") # from basic user session
+            }
+            print("[DEBUG] Loaded user context from SESSION cache.") # For debugging
+        else:
+            # Fallback: If not in session, call get_user_context
+            # This might happen if the session was cleared or it's an old session
+            # before this caching logic was implemented.
+            print("[DEBUG] User context NOT in session cache, calling get_user_context.") # For debugging
+            # The original get_user_context uses session["user"] internally,
+            # so it should still work.
+            context_from_api = get_user_context(
+                id_token=user.get("id_token"),
+                unit_id=user.get("unit_id"),
+                group_id=user.get("group_id")
+            )
+            g.context = context_from_api # Populate g for the current request
+
+            # And update the session cache for next time
+            session["user_context_cached"] = {
+                "unit_members": context_from_api.get("unit_members"),
+                "group_members": context_from_api.get("group_members")
+            }
+            print("[DEBUG] User context fetched and  SESSION cache updated via before_request fallback.")
+
     else:
-        g.context = {}
-
-# --- Routes ---
-
-
-
+        g.context = {} # No user, empty context
 
 
 if __name__ == "__main__":
