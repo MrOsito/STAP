@@ -63,7 +63,7 @@ def login_route():
                     # Add any other parts of the context from get_user_context
                     # that are expensive to fetch and safe to cache in session.
                 }
-                print("[DEBUG] User context cached in session during login.") # For debugging
+                print("[DEBUG] User context cached in session during login.", flush=True) # For debugging
 
             session.permanent = True
 
