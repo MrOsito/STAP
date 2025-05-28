@@ -40,6 +40,10 @@
   {{ user | tojson | safe }}
 </script>
 
+<script id="members-data" type="application/json">
+  {{ {} | tojson | safe }} {# Always output an empty JSON object #}
+</script>
+
 <script id="api-config-data" type="application/json">...</script>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
