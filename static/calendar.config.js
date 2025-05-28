@@ -3,9 +3,11 @@ export let calendar, allEvents = [], cachedMembers = [], currentEventId = null, 
 export let unitMembers = [];
 export let groupMembers = [];
 export let organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices;
+export let currentInviteeType = null;
 
 //  Functions to update these 'global' variables if needed by other modules
 export function setCalendar(instance) { calendar = instance; }
+
 export function setAllEvents(events) { allEvents = events; }
 export function setCurrentEventId(id) { currentEventId = id; }
 export function setCurrentInviteeId(id) { currentInviteeId = id; }
@@ -16,6 +18,7 @@ export function setScoutMethodChoices(instance) { scoutMethodChoices = instance;
 export function setChallengeAreaChoices(instance) { challengeAreaChoices = instance; } // <<< THIS IS THE MISSING EXPORT
 export function setUnitMembers(members) { unitMembers = members; }
 export function setGroupMembers(members) { groupMembers = members; }
+export function setCurrentInviteeType(type) { currentInviteeType = type; }
 
 
 // ... and so on for other choice instances and unitMembers/groupMembers if they are modified externally.

@@ -40,13 +40,6 @@
   {{ user | tojson | safe }}
 </script>
 
-<script id="members-data" type="application/json">
-  {{ {
-    'unit_members': unit_members,
-    'group_members': group_members
-  } | tojson | safe }}
-</script>
-
 <script id="api-config-data" type="application/json">...</script>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>

@@ -27,18 +27,44 @@ def get_profiles(id_token):
         print(f"[ERROR] Fetching profiles: {e}")
         return {}
 
-def fetch_members(id_token, entity_type, entity_id):
+def get_user_details_from_session(session_user_data):
+    if not session_user_data:
+        return {}
+
+    # The session_user_data already contains profile information from get_profiles()
+    # called during login.
+    return {
+        "user": session_user_data,
+        "unit_id": session_user_data.get("unit_id"),
+        "group_id": session_user_data.get("group_id")
+        # Add any other essential, non-list user context if needed here
+    }
+
+def fetch_members(id_token, entity_type, entity_id): # Existing function, unchanged in its core API call
+    # Ensure entity_type is either 'unit' or 'group' to prevent constructing unintended URLs.
+    if entity_type not in ["unit", "group"]:
+        print(f"[ERROR] Invalid entity_type for fetch_members: {entity_type}")
+        return [] # Or raise an error
+
     url = urljoin(MEMBERS_URL, f"/{entity_type}s/{entity_id}/members")
     headers = create_auth_header(id_token, "application/json")
     try:
         with httpx.Client(timeout=10.0) as client:
             res = client.get(url, headers=headers)
             res.raise_for_status()
-            return res.json().get("results", [])
+            return res.json().get("results", []) # Return the raw results
     except httpx.HTTPError as e:
-        print(f"[ERROR] Fetching {entity_type} members: {e}")
+        print(f"[ERROR] Fetching {entity_type} members for ID {entity_id}: {e}")
         return []
 
+
+def slim_member_list(members): # Existing function, can be used by the JS client or the new API endpoint
+    if not members:
+        return []
+    return [{"id": m.get("id"), "first_name": m.get("first_name"), "last_name": m.get("last_name")} for m in members]
+
+
+'''
 def get_user_context(id_token, unit_id, group_id):
     def slim_member_list(members):
         return [{"id": m["id"], "first_name": m["first_name"], "last_name": m["last_name"]} for m in members]
@@ -58,6 +84,7 @@ def get_user_context(id_token, unit_id, group_id):
         "unit_members": unit_members,
         "group_members": group_members,
     }
+'''
 
 def get_member_events(user_id, id_token, start=None, end=None):
     now = datetime.utcnow()
