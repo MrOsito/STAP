@@ -31,25 +31,41 @@ export function setupEditModalHeader() {
   dom.saveChangesBtn.dataset.mode = "edit"; // Ensure mode is set for editing
 }
 
+// In STAP/static/calendar.ui.js
+
+// ... (other imports and functions like setupEditModalHeader, handleEventClick, etc.) ...
+
 /**
  * Handles click on a date to create a new event.
  * @param {object} info - FullCalendar date click information.
  */
-export async function handleDateClick(info) {
+export async function handleDateClick(info) { // Ensure it's async
   console.log("Creating new event for date:", info.dateStr);
 
-  setCurrentEventId(null); // No current event when creating
-  setCurrentInviteeId(userUnitId); // Default to user's unit for new events
-  setCurrentInviteeType('unit');   // New events are typically for a 'unit'
+  // 1. Set up context for a new event
+  setCurrentEventId(null);
+  setCurrentInviteeId(userUnitId); // Default to user's unit
+  setCurrentInviteeType('unit');   // Default type for new events
 
+  // 2. Configure modal appearance for "Create" mode
   dom.eventEditModalLabel.textContent = "Create New Event";
-  dom.deleteEventBtn.classList.add('d-none'); // Hide delete for new event
+  dom.deleteEventBtn.classList.add('d-none');
   dom.saveChangesBtn.dataset.mode = "create";
+  dom.readOnlyReason.classList.add('d-none');
 
-  resetDropdowns(); // Clear and reset all dropdowns to their initial state
-  
-  // Prefill basic form fields
-  populateTextFields({ // Pass an empty object or specific defaults
+  // 3. IMPORTANT: Enable all underlying form elements first, including <select> tags
+  // This ensures that when Choices.js initializes, it does so on enabled elements.
+  document.querySelectorAll('#eventEditModal input, #eventEditModal select, #eventEditModal textarea, #eventEditModal button.btn-primary')
+    .forEach(el => {
+      el.disabled = false;
+    });
+
+  // 4. Reset all dropdowns (this will destroy and re-create Choices.js instances)
+  // Now that the underlying <select> elements are enabled, new Choices instances should also be enabled.
+  resetDropdowns(); // from calendar.choices.js
+
+  // 5. Prefill basic form fields for a new event
+  populateTextFields({
       title: "",
       location: "",
       description: "",
@@ -57,33 +73,30 @@ export async function handleDateClick(info) {
       end_datetime: info.dateStr + "T20:00"    // Default end time
   });
   
-  dom.readOnlyReason.classList.add('d-none');
-  // Ensure form elements are enabled
-  document.querySelectorAll('#eventEditModal input, #eventEditModal select, #eventEditModal textarea, #eventEditModal button.btn-primary')
-    .forEach(el => el.disabled = false);
-  
-  // Disable save button initially until members are loaded (optional, for better UX)
+  // 6. Fetch and populate member-specific dropdowns (Organisers, Leaders, Assistants)
+  // Disable save button during this async operation for better UX
   dom.saveChangesBtn.disabled = true;
-
   try {
-    // Fetch and populate members for the current user's unit
-    await fetchMembersAndPopulateSelects(userUnitId, 'unit');
+    await fetchMembersAndPopulateSelects(userUnitId, 'unit'); // Fetch for current user's unit
     console.log("Members populated for new event form.");
   } catch (error) {
     console.error("Failed to populate members for new event form:", error);
     alert("Could not load members for the new event form. Please try again.");
-    // Optionally, don't show the modal or show an error within it.
-    dom.saveChangesBtn.disabled = false; // Re-enable if there was an error, or handle differently
-    return; // Prevent modal from showing if member loading fails critically
+    // Decide if modal should still show or if we should return
+    dom.saveChangesBtn.disabled = false; // Re-enable save if error occurs here
+    return; 
   }
-  
-  dom.saveChangesBtn.disabled = false; // Enable save button after members are loaded
-  
-  // Manually ensure choices instances (like for organisers) are enabled if they were disabled by handleReadOnlyState
-  [organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices].forEach(choice => {
-    if (choice && choice.disabled) choice.enable();
-  });
+  dom.saveChangesBtn.disabled = false; // Re-enable save button
 
+  // 7. Explicitly ensure all Choices.js instances are enabled (belt and suspenders)
+  // This should ideally not be needed if step 3 and 4 work correctly, but adds robustness.
+  [organiserChoices, leaderChoices, assistantChoices, scoutMethodChoices, challengeAreaChoices].forEach(choiceInstance => {
+    if (choiceInstance && typeof choiceInstance.enable === 'function') {
+      choiceInstance.enable();
+    }
+  });
+  
+  // 8. Show the modal
   new bootstrap.Modal(dom.eventEditModal).show();
 }
 
