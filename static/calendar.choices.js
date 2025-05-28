@@ -14,7 +14,8 @@ import { formatCamelCase, toLocalDatetimeInputValue, resetChoicesInstance } from
  */
 export function initStaticChoiceDropdowns() {
   console.log("Initializing static choice dropdowns...");
-  if (challengeAreaChoices) challengeAreaChoices.destroy();
+  if (challengeAreaChoices) {challengeAreaChoices.destroy();}
+  if (dom.editChallengeArea) {dom.editChallengeArea.innerHTML = '';}
   const newChallengeAreaChoices = new Choices(dom.editChallengeArea, { removeItemButton: true });
   newChallengeAreaChoices.setChoices(challengeAreaList.map(e => ({ value: e, label: formatCamelCase(e) })), 'value', 'label', true);
   if (newChallengeAreaChoices.containerOuter?.element) {
@@ -22,7 +23,9 @@ export function initStaticChoiceDropdowns() {
   }
   setChallengeAreaChoices(newChallengeAreaChoices);
 
-  if (scoutMethodChoices) scoutMethodChoices.destroy();
+ if (scoutMethodChoices) { scoutMethodChoices.destroy(); }
+  // Explicitly clear inner HTML of the original select element
+  if (dom.editScoutMethod) { dom.editScoutMethod.innerHTML = ''; }
   const newScoutMethodChoices = new Choices(dom.editScoutMethod, { removeItemButton: true, searchEnabled: false });
   newScoutMethodChoices.setChoices(scoutMethodList.map(e => ({ value: e, label: formatCamelCase(e) })), 'value', 'label', true);
   if (newScoutMethodChoices.containerOuter?.element) {
@@ -141,7 +144,14 @@ export function populateChoicesDropdowns(members) {
  * Resets all dropdowns in the edit modal to their initial state and clears selections.
  */
 export function resetDropdowns() {
-    if (challengeAreaChoices) challengeAreaChoices.destroy();
+    // --- Challenge Area ---
+    if (challengeAreaChoices) {
+      challengeAreaChoices.destroy();
+    }
+    // Explicitly clear inner HTML of the original select element
+    if (dom.editChallengeArea) {
+      dom.editChallengeArea.innerHTML = '';
+    }
     const newChallengeAreaInstance = new Choices(dom.editChallengeArea, { removeItemButton: true });
     newChallengeAreaInstance.setChoices(
         challengeAreaList.map(e => ({ value: e, label: formatCamelCase(e) })),
@@ -152,7 +162,13 @@ export function resetDropdowns() {
     }
     setChallengeAreaChoices(newChallengeAreaInstance);
 
-    if (scoutMethodChoices) scoutMethodChoices.destroy();
+    if (scoutMethodChoices) {
+      scoutMethodChoices.destroy();
+    }
+    // Explicitly clear inner HTML of the original select element
+    if (dom.editScoutMethod) {
+      dom.editScoutMethod.innerHTML = '';
+    }
     const newScoutMethodInstance = new Choices(dom.editScoutMethod, {
         removeItemButton: true,
         searchEnabled: false
