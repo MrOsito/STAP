@@ -1,7 +1,7 @@
 from flask import Blueprint, session, redirect, url_for, flash, request, render_template
 from config import AWS_REGION, CLIENT_ID
 from services.aws_clients import cognito_client
-from services.api_helpers import get_profiles
+from services.api_helpers import get_profiles, get_user_context
 import time
 
 auth_bp = Blueprint('auth', __name__)
