@@ -2,9 +2,6 @@
 import {
     dom,
     challengeAreaList, scoutMethodList,
-    // userData might be needed if you switch to direct Terrain API calls with auth token
-    // For now, it's not directly used here as /members is a backend call.
-    // userData, TERRAIN_MEMBERS_API_URL, 
     setOrganiserChoices, setLeaderChoices, setAssistantChoices,
     setChallengeAreaChoices, setScoutMethodChoices,
     organiserChoices, leaderChoices, assistantChoices,
@@ -20,11 +17,17 @@ export function initStaticChoiceDropdowns() {
   if (challengeAreaChoices) challengeAreaChoices.destroy();
   const newChallengeAreaChoices = new Choices(dom.editChallengeArea, { removeItemButton: true });
   newChallengeAreaChoices.setChoices(challengeAreaList.map(e => ({ value: e, label: formatCamelCase(e) })), 'value', 'label', true);
+  if (newChallengeAreaChoices.containerOuter?.element) {
+    newChallengeAreaChoices.containerOuter.element.classList.add('form-select-sm'); // Apply styling class
+  }
   setChallengeAreaChoices(newChallengeAreaChoices);
 
   if (scoutMethodChoices) scoutMethodChoices.destroy();
   const newScoutMethodChoices = new Choices(dom.editScoutMethod, { removeItemButton: true, searchEnabled: false });
   newScoutMethodChoices.setChoices(scoutMethodList.map(e => ({ value: e, label: formatCamelCase(e) })), 'value', 'label', true);
+  if (newScoutMethodChoices.containerOuter?.element) {
+    newScoutMethodChoices.containerOuter.element.classList.add('form-select-sm'); // Apply styling class
+  }
   setScoutMethodChoices(newScoutMethodChoices);
   console.log("Static choice dropdowns initialization complete.");
 }
@@ -61,7 +64,6 @@ export function setDropdownSelections(data) {
 
 /**
  * Fetches members from the backend API and populates member-related dropdowns.
- * This is the primary function to get members for UI elements.
  * @param {string} inviteeId - The ID of the invitee (unit or group).
  * @param {string} inviteeType - The type of invitee ('unit' or 'group').
  * @returns {Promise<Array|undefined>} A promise that resolves with the fetched members array or undefined on error.
@@ -70,14 +72,13 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
     console.log(`Fetching members for Invitee ID: ${inviteeId}, Type: ${inviteeType}`);
     if (!inviteeId) {
         console.warn("No inviteeId provided to fetchMembersAndPopulateSelects. Cannot populate member choices.");
-        populateChoicesDropdowns([]); // Populate with empty or handle error UI
+        populateChoicesDropdowns([]);
         return;
     }
 
     try {
         const response = await fetch(`/members?invitee_id=${inviteeId}&invitee_type=${inviteeType}`);
         if (!response.ok) {
-            // Attempt to get error message from response body if available
             let errorMsg = `HTTP error fetching members: ${response.status}`;
             try {
                 const errorData = await response.json();
@@ -85,12 +86,12 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
             } catch (e) { /* Ignore if response body isn't JSON */ }
             throw new Error(errorMsg);
         }
-        const data = await response.json(); // Expects { "results": [{"id": "...", "first_name": "...", "last_name": "..."}] }
+        const data = await response.json();
         
         let membersToUse = [];
         if (data.results && Array.isArray(data.results)) {
              membersToUse = data.results.map(m => ({
-                value: String(m.id), // Ensure value is a string for Choices.js consistency
+                value: String(m.id),
                 label: `${m.first_name || ''} ${m.last_name || ''}`.trim()
             }));
         } else {
@@ -102,9 +103,8 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
         return membersToUse; 
     } catch (error) {
         console.error("Error fetching or populating members for dropdowns:", error);
-        populateChoicesDropdowns([]); // Populate with empty on error to clear previous state
-        // Optionally re-throw or provide user feedback
-        throw error; // Re-throw so the caller can catch it if needed
+        populateChoicesDropdowns([]);
+        throw error;
     }
 }
 
@@ -113,32 +113,43 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
  * @param {Array} members - Array of member objects ({ value: id, label: name }).
  */
 export function populateChoicesDropdowns(members) {
-    const newOrganiser = resetChoicesInstance(organiserChoices, dom.editOrganiser, { removeItemButton: true, classNames: { containerOuter: 'choices form-select-sm' } });
+    // Initialize without the problematic multi-token classNames option
+    const newOrganiser = resetChoicesInstance(organiserChoices, dom.editOrganiser, { removeItemButton: true });
     newOrganiser.setChoices(members, 'value', 'label', true);
+    // Add Bootstrap class to the Choices.js generated container AFTER initialization
+    if (newOrganiser.containerOuter?.element) {
+        newOrganiser.containerOuter.element.classList.add('form-select-sm');
+    }
     setOrganiserChoices(newOrganiser);
 
-    const newLeader = resetChoicesInstance(leaderChoices, dom.editLeaders, { removeItemButton: true, classNames: { containerOuter: 'choices form-select-sm' } });
+    const newLeader = resetChoicesInstance(leaderChoices, dom.editLeaders, { removeItemButton: true });
     newLeader.setChoices(members, 'value', 'label', true);
+    if (newLeader.containerOuter?.element) {
+        newLeader.containerOuter.element.classList.add('form-select-sm');
+    }
     setLeaderChoices(newLeader);
 
-    const newAssistant = resetChoicesInstance(assistantChoices, dom.editAssistants, { removeItemButton: true, classNames: { containerOuter: 'choices form-select-sm' } });
+    const newAssistant = resetChoicesInstance(assistantChoices, dom.editAssistants, { removeItemButton: true });
     newAssistant.setChoices(members, 'value', 'label', true);
+    if (newAssistant.containerOuter?.element) {
+        newAssistant.containerOuter.element.classList.add('form-select-sm');
+    }
     setAssistantChoices(newAssistant);
 }
 
 /**
  * Resets all dropdowns in the edit modal to their initial state and clears selections.
- * This is typically called when opening the modal for a new event or before loading an existing one.
  */
 export function resetDropdowns() {
-    // Re-initialize static dropdowns (Challenge Area, Scout Method)
-    // This ensures they are clean if they were previously manipulated.
     if (challengeAreaChoices) challengeAreaChoices.destroy();
     const newChallengeAreaInstance = new Choices(dom.editChallengeArea, { removeItemButton: true });
     newChallengeAreaInstance.setChoices(
         challengeAreaList.map(e => ({ value: e, label: formatCamelCase(e) })),
         'value', 'label', true
     );
+    if (newChallengeAreaInstance.containerOuter?.element) { // Apply styling class
+        newChallengeAreaInstance.containerOuter.element.classList.add('form-select-sm');
+    }
     setChallengeAreaChoices(newChallengeAreaInstance);
 
     if (scoutMethodChoices) scoutMethodChoices.destroy();
@@ -150,29 +161,22 @@ export function resetDropdowns() {
         scoutMethodList.map(e => ({ value: e, label: formatCamelCase(e) })),
         'value', 'label', true
     );
+    if (newScoutMethodInstance.containerOuter?.element) { // Apply styling class
+        newScoutMethodInstance.containerOuter.element.classList.add('form-select-sm');
+    }
     setScoutMethodChoices(newScoutMethodInstance);
 
-    // Clear member-based dropdowns (they will be populated on demand)
-    // Pass an empty array to clear their current choices.
-    populateChoicesDropdowns([]);
+    populateChoicesDropdowns([]); // Clears member-based dropdowns
 
-    // Clear any active selections from all relevant Choices instances
-    // Note: populateChoicesDropdowns([]) already handles clearing for member dropdowns.
-    // This loop is more for the static ones if they somehow retained values.
+    // This loop might be redundant if populateChoicesDropdowns([]) and re-init of static ones handles clearing.
+    // However, explicitly removing active items from re-instantiated choices is safe.
     [
       organiserChoices, leaderChoices, assistantChoices,
-      challengeAreaChoices, // Access the updated instances
-      scoutMethodChoices   // Access the updated instances
+      challengeAreaChoices, // Access the updated instances from setChallengeAreaChoices
+      scoutMethodChoices   // Access the updated instances from setScoutMethodChoices
     ].forEach(choiceInstance => {
       if (choiceInstance) {
         choiceInstance.removeActiveItems();
-        // choiceInstance.clearStore(); // If you want to remove all choices, not just selections
       }
     });
 }
-
-// The old `fetchAndPopulateMembers` that used embedded `membersData` is removed
-// as we are now always fetching from the API via `fetchMembersAndPopulateSelects`.
-
-// The old `populateMemberChoices` was identical to `populateChoicesDropdowns`
-// and can be removed to avoid duplication.
