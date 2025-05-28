@@ -1,46 +1,42 @@
+# STAP/app.py
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, g
-from functools import wraps
-from datetime import datetime, timedelta, timezone
-from dateutil.parser import isoparse
-import httpx
-from urllib.parse import urljoin
-import time
-from services.api_helpers import (
-    create_auth_header, api_error, get_profiles, fetch_members,
-    get_user_context, get_member_events, update_event, delete_event
-)
+from flask import Flask, g, session # Added session and g
+from datetime import timedelta
+
+# Import the new function from api_helpers
+from services.api_helpers import get_user_details_from_session
+
 from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.event_routes import event_bp
 from routes.member_routes import member_bp
-from utils.auth_utils import login_required
-from config import MEMBERS_URL, EVENTS_API_URL
+# Removed: from utils.auth_utils import login_required (it's used within blueprints)
+# config is imported by api_helpers, not directly needed here unless for app.secret_key from os.environ
 
 # --- App Setup ---
 app = Flask(__name__)
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(event_bp)
-app.register_blueprint(member_bp)
-app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
-app.permanent_session_lifetime = timedelta(minutes=30)
+app.register_blueprint(member_bp) # Ensure this is correctly defined and imported
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-replace-me") # Use a strong secret key
+app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get("SESSION_LIFETIME_MINUTES", 60)))
+
 
 # --- Before Request ---
 @app.before_request
-def load_user_context():
-    user = session.get("user")
-    if user:
-        session.permanent = True
-        g.context = get_user_context(user.get("id_token"), user.get("unit_id"), user.get("group_id"))
+def load_lightweight_user_context():
+    if 'user' in session:
+        session.permanent = True # Refresh session lifetime on activity
+        # Use the new function that only gets details from the session
+        g.context = get_user_details_from_session()
     else:
         g.context = {}
 
 # --- Routes ---
-
-
-
-
+# Your main routes like @app.route('/') if any, or they are all in blueprints.
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    # For local development, debug=True is fine.
+    # For production, use a WSGI server like Gunicorn or Hypercorn.
+    app.run(debug=os.environ.get("FLASK_DEBUG", "False").lower() == "true")

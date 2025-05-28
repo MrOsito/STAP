@@ -41,10 +41,7 @@
 </script>
 
 <script id="members-data" type="application/json">
-  {{ {
-    'unit_members': unit_members,
-    'group_members': group_members
-  } | tojson | safe }}
+  {{ {} | tojson | safe }} {# Always output an empty JSON object #}
 </script>
 
 <script id="api-config-data" type="application/json">...</script>

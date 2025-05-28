@@ -1,8 +1,8 @@
 // static/calendar.main.js
-import { membersData, unitMembers as configUnitMembers, setUnitMembers } from './calendar.config.js'; // Assuming unitMembers is in config
+import { setUnitMembers } from './calendar.config.js'; // Keep if setUnitMembers is used elsewhere or for future use
 import { initCalendar } from './calendar.init.js';
-import { setupEditEventButton, setupSaveButton } from './calendar.ui.js';
-import { initStaticChoiceDropdowns, populateMemberChoices } from './calendar.choices.js';
+import { setupEditEventButton, setupSaveButton, setupDeleteButton } from './calendar.ui.js'; // Added setupDeleteButton
+import { initStaticChoiceDropdowns } from './calendar.choices.js'; // Removed populateMemberChoices
 
 // --- Startup ---
 function initializeApp() {
@@ -19,17 +19,24 @@ function initializeApp() {
   console.time("setupSaveButton");
   setupSaveButton();
   console.timeEnd("setupSaveButton");
+
+  console.time("setupDeleteButton"); // Add this call
+  setupDeleteButton();
+  console.timeEnd("setupDeleteButton");
   
   console.time("initStaticChoiceDropdowns");
-  initStaticChoiceDropdowns();
+  initStaticChoiceDropdowns(); // This initializes Challenge Area, Scout Method etc.
   console.timeEnd("initStaticChoiceDropdowns");
 
-  console.time("unitMembersSetup");
-  // Initialize unitMembers from membersData (which is from config)
-  const localUnitMembers = membersData.unit_members.map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` }));
-  setUnitMembers(localUnitMembers); // Update the shared unitMembers in config.js
-  populateMemberChoices(localUnitMembers); // from choices.js
-  console.timeEnd("unitMembersSetup");
+  // REMOVED the "unitMembersSetup" block as members are fetched on-demand by calendar.ui.js
+  // console.time("unitMembersSetup");
+  // const localUnitMembers = membersData.unit_members.map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` })); // membersData no longer has this
+  // setUnitMembers(localUnitMembers); 
+  // populateMemberChoices(localUnitMembers); // This function was removed
+  // console.timeEnd("unitMembersSetup");
+
+  // If you want to clear/initialize the shared unitMembers in config.js:
+  setUnitMembers([]); // Initialize as empty or based on a new strategy if needed
 
   console.log("Initialization complete.");
 }
