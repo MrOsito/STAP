@@ -91,7 +91,7 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
     // Construct the direct Terrain API URL
     // Example: https://members.terrain.scouts.com.au/units/UNIT_ID/members
     // Or:      https://members.terrain.scouts.com.au/groups/GROUP_ID/members
-    const membersApiUrl = `${TERRAIN_MEMBERS_API_URL}/${inviteeType}s/${inviteeId}/members`;
+    const directMembersApiUrl = `${TERRAIN_MEMBERS_API_URL}/${inviteeType}s/${inviteeId}/members`;
     console.log("Direct Terrain API URL for members:", directMembersApiUrl);
 
     try {
