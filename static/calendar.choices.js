@@ -99,11 +99,7 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
             method: "GET",
             headers: {
                 "Authorization": userData.id_token,
-                "Content-Type": "application/json",
-                // Adding cache-control headers as a good practice for fresh data
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0"
+                "Content-Type": "application/json"
             }
         });
 
