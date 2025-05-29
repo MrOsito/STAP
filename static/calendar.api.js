@@ -1,9 +1,11 @@
 // static/calendar.api.js
+
 import {
     userData, TERRAIN_EVENTS_API_URL, currentEventId, currentInviteeId, userMemberName,
-    allEvents, setAllEvents, // For fetchEvents to update allEvents
-    organiserChoices, leaderChoices, assistantChoices, // For buildPatchPayload
-    challengeAreaChoices, scoutMethodChoices // For buildPatchPayload
+    allEvents, setAllEvents,
+    organiserChoices, leaderChoices, assistantChoices,
+    challengeAreaChoices, scoutMethodChoices,
+    userUnitId
 } from './calendar.config.js';
 import { populateInviteeFilter } from './calendar.init.js';
 import { toTerrainDatetime } from './calendar.utils.js';
@@ -128,9 +130,7 @@ export async function getEventDetailsAPI(eventId) {
   return response.json(); // Return the parsed JSON directly
 }
 
-
-
-
+/*
 export function saveNewEvent() {
   const payload = buildPatchPayload();
 
@@ -151,6 +151,47 @@ export function saveNewEvent() {
     alert("Could not create event.");
   });
 }
+*/
+
+export async function saveNewEvent() { // Make it async
+  const payload = buildPatchPayload(); // Your existing function to build the event data
+
+  // Ensure you have the user's unit_id for the endpoint URL
+  // and the id_token for authorization. These should be in `userData` from calendar.config.js
+  if (!userData || !userData.id_token || !userUnitId) {
+    console.error("User data, token, or unit ID not available for creating event.");
+    alert("Could not create event: Missing user information. Please refresh and try again.");
+    return Promise.reject("Missing user information for create event."); // Return a rejected promise
+  }
+
+  // The target URL for creating unit events, derived from your Python route
+  const createEventUrl = `${TERRAIN_EVENTS_API_URL}/units/${userUnitId}/events`;
+
+  try {
+    const response = await fetch(createEventUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": userData.id_token, // Get token from userData
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok && response.status !== 201 && response.status !== 204) { // Terrain might return 201 Created
+      const errorData = await response.json().catch(() => ({})); // Try to get error details
+      console.error("Failed to create event. Status:", response.status, "Response:", errorData);
+      throw new Error(`Failed to create event. Status: ${response.status}. ${errorData.message || ''}`);
+    }
+    alert("✅ New event created successfully!");
+    location.reload(); // Or use calendar.refetchEvents() if you want a softer reload
+    // return response.json(); // Or some success indicator
+  } catch (err) {
+    console.error("Create error:", err);
+    alert(`Could not create event: ${err.message}`);
+    throw err; // Re-throw the error to be caught by the caller if needed
+  }
+}
+
 
 export function saveEditedEvent() {
   if (!currentEventId) return alert("No event selected");
@@ -189,7 +230,6 @@ export async function deleteEventAPI(eventId) { // Make it an API function
         }
     });
 }
-
 
 
 export function buildPatchPayload() {
