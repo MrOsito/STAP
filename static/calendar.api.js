@@ -1,11 +1,10 @@
 // static/calendar.api.js
-
 import {
     userData, TERRAIN_EVENTS_API_URL, currentEventId, currentInviteeId, userMemberName,
     allEvents, setAllEvents,
     organiserChoices, leaderChoices, assistantChoices,
     challengeAreaChoices, scoutMethodChoices,
-    userUnitId
+    userUnitId, calendar
 } from './calendar.config.js';
 import { populateInviteeFilter } from './calendar.init.js';
 import { toTerrainDatetime } from './calendar.utils.js';
@@ -130,28 +129,6 @@ export async function getEventDetailsAPI(eventId) {
   return response.json(); // Return the parsed JSON directly
 }
 
-/*
-export function saveNewEvent() {
-  const payload = buildPatchPayload();
-
-  fetch(`/events`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(res => {
-    if (!res.ok && res.status !== 204) {
-      throw new Error(`Failed to create event. Status: ${res.status}`);
-    }
-    alert("✅ New event created successfully!");
-    location.reload();
-  })
-  .catch(err => {
-    console.error("Create error:", err);
-    alert("Could not create event.");
-  });
-}
-*/
 
 export async function saveNewEvent() { // Make it async
   const payload = buildPatchPayload(); // Your existing function to build the event data
@@ -194,26 +171,73 @@ export async function saveNewEvent() { // Make it async
 
 
 export function saveEditedEvent() {
-  if (!currentEventId) return alert("No event selected");
+  if (!currentEventId) {
+    alert("No event selected for updating.");
+    return Promise.reject("No currentEventId for saveEditedEvent"); // Return a rejected promise
+  }
+
+  if (!userData || !userData.id_token) {
+    console.error("User data or token not available for updating event.");
+    alert("Could not update event: Missing user information. Please refresh and try again.");
+    return Promise.reject("Missing user information for update event.");
+  }
 
   const payload = buildPatchPayload();
+  
+  const updateEventUrl = `${TERRAIN_EVENTS_API_URL}/events/${currentEventId}`;
 
-  fetch(`/event/${currentEventId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Failed to update event");
+  console.log(`Attempting to PATCH event directly to: ${updateEventUrl}`);
+
+  try {
+    const response = await fetch(updateEventUrl, {
+      method: "PATCH",
+      headers: {
+        "Authorization": userData.id_token, // Use the id_token from userData
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      // Attempt to get more detailed error information from the response body
+      let errorData = { message: `Failed to update event. Status: ${response.status}` };
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        // Response body was not JSON or was empty
+        console.warn("Could not parse JSON error response from PATCH event API.");
+      }
+      console.error("Error updating event:", response.status, errorData);
+      // Use error message from API if available, otherwise default
+      throw new Error(errorData.detail || errorData.message || `HTTP error ${response.status}`);
+    }
+
+    // Handle successful response (Terrain API might return 200 OK with the updated event, or 204 No Content)
+    let responseData;
+    if (response.status === 204) {
+        console.log("Event updated successfully (204 No Content).");
+        responseData = { success: true };
+    } else {
+        responseData = await response.json();
+        console.log("Event updated successfully (200 OK), response data:", responseData);
+    }
+    
     alert("✅ Event updated successfully!");
-    location.reload();
-  })
-  .catch(err => {
-    console.error("Save error:", err);
-    alert("Could not save changes.");
-  });
-}
+    
+    if (calendar) {
+      calendar.refetchEvents();
+    } else {
+      location.reload(); // Fallback
+    }
+    
+    return responseData; // Return data for any further client-side processing if needed
 
+  } catch (err) {
+    console.error("Error during saveEditedEvent:", err);
+    alert(`Could not save changes: ${err.message}`);
+    throw err; // Re-throw the error if it needs to be handled by the caller
+  }
+}
 
 export async function deleteEventAPI(eventId) { // Make it an API function
     if (!eventId) {
