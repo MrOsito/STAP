@@ -220,15 +220,44 @@ export async function deleteEventAPI(eventId) { // Make it an API function
         alert("No event selected for deletion.");
         return Promise.reject("No event ID for deletion");
     }
-    // Assuming direct API call like others:
-    // return fetch(`<span class="math-inline">\{TERRAIN\_EVENTS\_API\_URL\}/events/</span>{eventId}`, { // Replace `/event/` with actual API
-    return fetch(`/event/${eventId}`, { // This is still the Flask backend route
-        method: "DELETE",
-        headers: {
-            "Authorization": userData.id_token, // Add auth for direct API call
-            // "Content-Type": "application/json" // Not usually needed for DELETE
+
+    // Assuming 'userData' is available and has 'id_token'
+    if (!userData || !userData.id_token) {
+        console.error("User data or token not available for deleting event.");
+        return Promise.reject("Authentication details missing for event deletion.");
+    }
+
+    const flaskBackendDeleteUrl = `/event/${eventId}`; 
+
+    try {
+        const response = await fetch(flaskBackendDeleteUrl, {
+            method: "DELETE",
+            headers: {
+                "Authorization": userData.id_token,
+            }
+        });
+
+        if (!response.ok) {
+            let errorMsg = `Failed to delete event. Status: ${response.status}`;
+            try {
+                // Attempt to parse a JSON error response from your backend
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorMsg; // Assuming your Flask backend sends { "error": "message" }
+            } catch (e) {
+                // If response body is not JSON or is empty
+            }
+            throw new Error(errorMsg);
         }
-    });
+
+        // If deletion is successful (e.g., Flask returns 200 OK or 204 No Content)
+        console.log("Event deletion successful via API call.");
+        return { success: true }; // Indicate success to the calling function
+
+    } catch (err) {
+        console.error("Error in deleteEventAPI:", err);
+        // Let the calling function decide how to present this error to the user
+        throw err;
+    }
 }
 
 

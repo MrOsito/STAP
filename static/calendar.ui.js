@@ -8,7 +8,7 @@ import {
     organiserChoices, leaderChoices, assistantChoices,
     challengeAreaChoices, scoutMethodChoices
 } from './calendar.config.js';
-import { clearAllChoiceSelections, formatCamelCase } from './calendar.utils.js';
+import { formatCamelCase } from './calendar.utils.js';
 import {
     fetchMembersAndPopulateSelects,
     resetDropdowns,
@@ -30,10 +30,6 @@ export function setupEditModalHeader() {
   dom.deleteEventBtn.classList.remove('d-none');
   dom.saveChangesBtn.dataset.mode = "edit"; // Ensure mode is set for editing
 }
-
-// In STAP/static/calendar.ui.js
-
-// ... (other imports and functions like setupEditModalHeader, handleEventClick, etc.) ...
 
 /**
  * Handles click on a date to create a new event.
@@ -290,38 +286,50 @@ export function setupSaveButton() {
 /**
  * Sets up the event listener for the "Delete Event" button in the edit modal.
  */
-export function setupDeleteButton() { // Renamed for clarity, assuming it wasn't set up before
+export function setupDeleteButton() {
     if (dom.deleteEventBtn) {
-        dom.deleteEventBtn.addEventListener('click', async () => { // Make async
+        dom.deleteEventBtn.addEventListener('click', async () => { //
             if (!currentEventId) {
                 alert("No event selected for deletion.");
                 return;
             }
-            if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+            if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) { //
                 const btn = dom.deleteEventBtn;
-                const originalText = btn.textContent; // Or use an icon
+                const originalText = btn.textContent;
                 btn.disabled = true;
-                btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...`;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...`; //
 
                 try {
-                    await deleteEventAPI(currentEventId); // deleteEventAPI should handle success (alert/reload)
-                    // If successful, hide the modal
-                    const editModalInstance = bootstrap.Modal.getInstance(dom.eventEditModal);
+                    await deleteEventAPI(currentEventId); //
+                    
+                    alert("✅ Event deleted successfully!"); // User feedback
+
+                    // Hide the edit modal
+                    const editModalInstance = bootstrap.Modal.getInstance(dom.eventEditModal); //
                     if (editModalInstance) {
-                        editModalInstance.hide();
+                        editModalInstance.hide(); //
                     }
+
+                    // Refresh the FullCalendar events
+                    if (calendar) { // 'calendar' is the FullCalendar instance from calendar.config.js
+                        calendar.refetchEvents();
+                        console.log("Calendar events refetched after deletion.");
+                    } else {
+                        // Fallback if the calendar instance isn't available for some reason
+                        console.warn("Calendar instance not found, falling back to page reload.");
+                        location.reload();
+                    }
+
                 } catch (error) {
-                    console.error("Delete error (from UI):", error);
-                    // Alert is handled in API function, but good to log here.
+                    console.error("Delete operation failed (UI):", error);
+                    alert(`Could not delete event: ${error.message || 'An unexpected error occurred.'}`);
                 } finally {
-                    btn.disabled = false;
-                    btn.textContent = originalText; // Or restore icon
+                    btn.disabled = false; //
+                    btn.textContent = originalText; //
                 }
             }
         });
+    } else {
+        console.warn("Delete button (dom.deleteEventBtn) not found in the DOM during setup.");
     }
 }
-
-// Initial setup of buttons when the module loads (or call this from main.js)
-// setupSaveButton(); // Already called from main.js
-// setupDeleteButton(); // This should also be called from main.js after DOM is ready
