@@ -1,11 +1,12 @@
 // static/calendar.choices.js
 import {
-    dom,
+    dom, userData,
     challengeAreaList, scoutMethodList,
     setOrganiserChoices, setLeaderChoices, setAssistantChoices,
     setChallengeAreaChoices, setScoutMethodChoices,
     organiserChoices, leaderChoices, assistantChoices,
-    challengeAreaChoices, scoutMethodChoices
+    challengeAreaChoices, scoutMethodChoices,
+    TERRAIN_MEMBERS_API_URL
 } from './calendar.config.js';
 import { formatCamelCase, toLocalDatetimeInputValue, resetChoicesInstance } from './calendar.utils.js';
 
@@ -72,42 +73,67 @@ export function setDropdownSelections(data) {
  * @returns {Promise<Array|undefined>} A promise that resolves with the fetched members array or undefined on error.
  */
 export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'unit') {
-    console.log(`Fetching members for Invitee ID: ${inviteeId}, Type: ${inviteeType}`);
+    console.log(`Fetching members directly for Invitee ID: ${inviteeId}, Type: ${inviteeType}`);
     if (!inviteeId) {
-        console.warn("No inviteeId provided to fetchMembersAndPopulateSelects. Cannot populate member choices.");
-        populateChoicesDropdowns([]);
-        return;
+        console.warn("No inviteeId provided. Cannot populate member choices.");
+        populateChoicesDropdowns([]); // Populate with empty to clear
+        return Promise.resolve([]); // Return empty array
     }
 
+    if (!userData || !userData.id_token || !TERRAIN_MEMBERS_API_URL) {
+        console.error("User data, token, or Members API URL not available.");
+        alert("Could not load members: Configuration error.");
+        populateChoicesDropdowns([]);
+        return Promise.reject("Configuration error for fetching members.");
+    }
+
+    // Construct the direct Terrain API URL
+    // Example: https://members.terrain.scouts.com.au/units/UNIT_ID/members
+    // Or:      https://members.terrain.scouts.com.au/groups/GROUP_ID/members
+    const membersApiUrl = `${TERRAIN_MEMBERS_API_URL}/${inviteeType}s/${inviteeId}/members`;
+
     try {
-        const response = await fetch(`/members?invitee_id=${inviteeId}&invitee_type=${inviteeType}`);
+        const response = await fetch(membersApiUrl, {
+            method: "GET",
+            headers: {
+                "Authorization": userData.id_token,
+                "Content-Type": "application/json"
+            }
+        });
+
         if (!response.ok) {
-            let errorMsg = `HTTP error fetching members: ${response.status}`;
+            let errorMsg = `HTTP error fetching members from Terrain API: ${response.status}`;
             try {
                 const errorData = await response.json();
-                errorMsg += ` - ${errorData.error || response.statusText}`;
+                errorMsg += ` - ${errorData.message || errorData.detail || response.statusText}`;
             } catch (e) { /* Ignore if response body isn't JSON */ }
             throw new Error(errorMsg);
         }
         const data = await response.json();
         
         let membersToUse = [];
-        if (data.results && Array.isArray(data.results)) {
-             membersToUse = data.results.map(m => ({
-                value: String(m.id),
+        // The direct Terrain API might return data in a 'results' field or directly as an array
+        // Adjust based on the actual API response structure. Assuming it's data.results for now.
+        const rawMembers = data.results || (Array.isArray(data) ? data : []);
+
+        if (Array.isArray(rawMembers)) {
+            // Perform the "slimming" logic here in JavaScript
+            membersToUse = rawMembers.map(m => ({
+                value: String(m.id), // Ensure value is a string for Choices.js
                 label: `${m.first_name || ''} ${m.last_name || ''}`.trim()
             }));
         } else {
-            console.warn("Unexpected data structure from /members endpoint:", data);
+            console.warn("Unexpected data structure from Terrain Members API:", data);
         }
         
         populateChoicesDropdowns(membersToUse);
-        console.log("Member dropdowns populated successfully from /members API.");
+        console.log("Member dropdowns populated successfully from Terrain Members API.");
         return membersToUse; 
     } catch (error) {
-        console.error("Error fetching or populating members for dropdowns:", error);
-        populateChoicesDropdowns([]);
-        throw error;
+        console.error("Error fetching or populating members from Terrain API:", error);
+        populateChoicesDropdowns([]); // Clear dropdowns on error
+        // alert(`Could not load members: ${error.message}`); // Optional: notify user
+        throw error; // Re-throw so the caller can handle it if necessary
     }
 }
 
