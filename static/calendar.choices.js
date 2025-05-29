@@ -74,6 +74,7 @@ export function setDropdownSelections(data) {
  */
 export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'unit') {
     console.log(`Fetching members directly for Invitee ID: ${inviteeId}, Type: ${inviteeType}`);
+
     if (!inviteeId) {
         console.warn("No inviteeId provided. Cannot populate member choices.");
         populateChoicesDropdowns([]); // Populate with empty to clear
@@ -91,13 +92,18 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
     // Example: https://members.terrain.scouts.com.au/units/UNIT_ID/members
     // Or:      https://members.terrain.scouts.com.au/groups/GROUP_ID/members
     const membersApiUrl = `${TERRAIN_MEMBERS_API_URL}/${inviteeType}s/${inviteeId}/members`;
+    console.log("Direct Terrain API URL for members:", directMembersApiUrl);
 
     try {
-        const response = await fetch(membersApiUrl, {
+        const response = await fetch(directMembersApiUrl, {
             method: "GET",
             headers: {
                 "Authorization": userData.id_token,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                // Adding cache-control headers as a good practice for fresh data
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
             }
         });
 
@@ -107,35 +113,42 @@ export async function fetchMembersAndPopulateSelects(inviteeId, inviteeType = 'u
                 const errorData = await response.json();
                 errorMsg += ` - ${errorData.message || errorData.detail || response.statusText}`;
             } catch (e) { /* Ignore if response body isn't JSON */ }
+            console.error(errorMsg);
             throw new Error(errorMsg);
         }
-        const data = await response.json();
         
-        let membersToUse = [];
-        // The direct Terrain API might return data in a 'results' field or directly as an array
-        // Adjust based on the actual API response structure. Assuming it's data.results for now.
+        const data = await response.json();
+        // The Terrain API might return data in a 'results' field or directly as an array.
+        // Assuming it's data.results based on previous patterns. Adjust if necessary.
         const rawMembers = data.results || (Array.isArray(data) ? data : []);
+        console.log("Raw members from Terrain API:", rawMembers);
 
+        let slimmedMembers = [];
         if (Array.isArray(rawMembers)) {
             // Perform the "slimming" logic here in JavaScript
-            membersToUse = rawMembers.map(m => ({
+            slimmedMembers = rawMembers.map(m => ({
                 value: String(m.id), // Ensure value is a string for Choices.js
-                label: `${m.first_name || ''} ${m.last_name || ''}`.trim()
-            }));
+                label: `${m.first_name || ''} ${m.last_name || ''}`.trim(),
+                // You can include other properties if needed by Choices.js or your logic
+                // customProperties: { /* ... */ }
+            })).filter(m => m.label); // Filter out members with no name
         } else {
-            console.warn("Unexpected data structure from Terrain Members API:", data);
+            console.warn("Unexpected data structure from Terrain Members API for rawMembers:", rawMembers);
         }
         
-        populateChoicesDropdowns(membersToUse);
-        console.log("Member dropdowns populated successfully from Terrain Members API.");
-        return membersToUse; 
+        populateChoicesDropdowns(slimmedMembers);
+        console.log("Member dropdowns populated successfully directly from Terrain API.", slimmedMembers);
+        return slimmedMembers;
+
     } catch (error) {
-        console.error("Error fetching or populating members from Terrain API:", error);
+        console.error("Error fetching or populating members directly from Terrain API:", error);
         populateChoicesDropdowns([]); // Clear dropdowns on error
-        // alert(`Could not load members: ${error.message}`); // Optional: notify user
+        // Optionally, notify the user:
+        // alert(`Could not load member data: ${error.message}. Please try again.`);
         throw error; // Re-throw so the caller can handle it if necessary
     }
 }
+
 
 /**
  * (Re)Initializes and populates the Choices.js instances for Organiser, Leaders, and Assistants.
