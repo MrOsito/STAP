@@ -309,11 +309,14 @@ export function setupDeleteButton() {
                     if (editModalInstance) {
                         editModalInstance.hide(); //
                     }
+                    
+                    // Trying to establish why refechEvents is not running
+                    console.log("In setupDeleteButton: Checking 'calendar' instance before refetch:", calendar); 
 
                     // Refresh the FullCalendar events
                     if (calendar) { // 'calendar' is the FullCalendar instance from calendar.config.js
                         calendar.refetchEvents();
-                        console.log("Calendar events refetched after deletion.");
+                        console.log("### Calendar events refetched after deletion. ###");
                     } else {
                         // Fallback if the calendar instance isn't available for some reason
                         console.warn("Calendar instance not found, falling back to page reload.");
