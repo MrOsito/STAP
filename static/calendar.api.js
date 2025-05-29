@@ -170,7 +170,7 @@ export async function saveNewEvent() { // Make it async
 }
 
 
-export function saveEditedEvent() {
+export async function saveEditedEvent() {
   if (!currentEventId) {
     alert("No event selected for updating.");
     return Promise.reject("No currentEventId for saveEditedEvent"); // Return a rejected promise
