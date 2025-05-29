@@ -239,48 +239,60 @@ export async function saveEditedEvent() {
   }
 }
 
-export async function deleteEventAPI(eventId) { // Make it an API function
+export async function deleteEventAPI(eventId) {
     if (!eventId) {
-        alert("No event selected for deletion.");
-        return Promise.reject("No event ID for deletion");
+        // The calling function (setupDeleteButton) will handle user alerts
+        return Promise.reject("No event ID provided for deletion. From deleteEventAPI.");
     }
 
-    // Assuming 'userData' is available and has 'id_token'
     if (!userData || !userData.id_token) {
         console.error("User data or token not available for deleting event.");
-        return Promise.reject("Authentication details missing for event deletion.");
+        return Promise.reject("Authentication details missing for event deletion. From deleteEventAPI.");
     }
 
-    const flaskBackendDeleteUrl = `/event/${eventId}`; 
+    // Construct the direct Terrain API URL for deleting an event
+    // Typically: EVENTS_API_URL/events/EVENT_ID
+    const directDeleteUrl = `${TERRAIN_EVENTS_API_URL}/events/${eventId}`;
+
+    console.log(`Attempting to DELETE event directly from: ${directDeleteUrl}`);
 
     try {
-        const response = await fetch(flaskBackendDeleteUrl, {
+        const response = await fetch(directDeleteUrl, {
             method: "DELETE",
             headers: {
-                "Authorization": userData.id_token,
+                "Authorization": userData.id_token
+                // "Content-Type" is not usually needed for a DELETE request without a body
             }
         });
 
         if (!response.ok) {
-            let errorMsg = `Failed to delete event. Status: ${response.status}`;
+            // Attempt to get more detailed error information from the response body if any
+            let errorData = { message: `Failed to delete event via Terrain API. Status: ${response.status}` };
             try {
-                // Attempt to parse a JSON error response from your backend
-                const errorData = await response.json();
-                errorMsg = errorData.error || errorMsg; // Assuming your Flask backend sends { "error": "message" }
+                // Terrain API might not send a JSON body for all errors on DELETE
+                if (response.headers.get("content-type")?.includes("application/json")) {
+                    errorData = await response.json();
+                }
             } catch (e) {
-                // If response body is not JSON or is empty
+                console.warn("Could not parse JSON error response from DELETE event API, or no JSON body present.");
             }
-            throw new Error(errorMsg);
+            console.error("Error deleting event directly from Terrain API:", response.status, errorData);
+            throw new Error(errorData.detail || errorData.message || `HTTP error ${response.status}`);
         }
 
-        // If deletion is successful (e.g., Flask returns 200 OK or 204 No Content)
-        console.log("Event deletion successful via API call.");
-        return { success: true }; // Indicate success to the calling function
+        // Handle successful DELETE (Terrain API might return 204 No Content or 200 OK)
+        if (response.status === 204) {
+            console.log("Event deleted successfully from Terrain API (204 No Content).");
+        } else {
+            console.log("Event deleted successfully from Terrain API (Status:", response.status + ").");
+        }
+        
+        return { success: true }; // Indicate success to the calling function in calendar.ui.js
 
     } catch (err) {
-        console.error("Error in deleteEventAPI:", err);
-        // Let the calling function decide how to present this error to the user
-        throw err;
+        console.error("Error in deleteEventAPI (direct Terrain call):", err);
+        // The calling function (setupDeleteButton in calendar.ui.js) will alert the user.
+        throw err; // Re-throw to be handled by the caller
     }
 }
 
