@@ -1,6 +1,6 @@
 flask
 boto3
 httpx
-hypercorn
+uvicorn
 uvloop
 whitenoise
