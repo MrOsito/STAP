@@ -1,6 +1,5 @@
 flask
 boto3
 httpx
+hypercorn
 uvloop
-whitenoise
-gunicorn

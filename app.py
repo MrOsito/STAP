@@ -2,7 +2,6 @@
 import os
 from flask import Flask, g, session # Added session and g
 from datetime import timedelta
-from whitenoise import WhiteNoise
 
 # Import the new function from api_helpers
 from services.api_helpers import get_user_details_from_session
