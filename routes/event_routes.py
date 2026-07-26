@@ -45,6 +45,7 @@ def create_event():
         unit_id = user.get("unit_id")
         id_token = user.get("id_token")
         event_data = request.get_json()
+        event_start_date = request.form.get("start_date")
 
         url = urljoin(EVENTS_API_URL, f"/units/{unit_id}/events")
         headers = create_auth_header(id_token, "application/json")

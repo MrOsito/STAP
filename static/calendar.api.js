@@ -159,16 +159,29 @@ export async function saveNewEvent() { // Make it async
       console.error("Failed to create event. Status:", response.status, "Response:", errorData);
       throw new Error(`Failed to create event. Status: ${response.status}. ${errorData.message || ''}`);
     }
+    
     alert("✅ New event created successfully!");
-    location.reload(); // Or use calendar.refetchEvents() if you want a softer reload
-    // return response.json(); // Or some success indicator
+
+    // --- CHANGE STARTS HERE ---
+    if (calendar) {
+      // 1. Refetch events dynamically without reloading the page
+      calendar.refetchEvents();
+      
+      // 2. Navigate calendar to the created event's date
+      if (payload.start_datetime) {
+        calendar.gotoDate(payload.start_datetime);
+      }
+    } else {
+      location.reload(); // Fallback if calendar object isn't initialized
+    }
+    // --- CHANGE ENDS HERE ---
+
   } catch (err) {
     console.error("Create error:", err);
     alert(`Could not create event: ${err.message}`);
     throw err; // Re-throw the error to be caught by the caller if needed
   }
 }
-
 
 export async function saveEditedEvent() {
   if (!currentEventId) {
