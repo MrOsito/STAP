@@ -51,7 +51,8 @@ def create_event():
         with httpx.Client(timeout=10.0) as client:
             res = client.post(url, headers=headers, json=event_data)
             res.raise_for_status()
-            return jsonify({"success": True})
+#            return jsonify({"success": True})
+            return redirect(url_for('dashboard.calendar'))
     except httpx.HTTPError as e:
         print(f"[ERROR] Creating event: {e}")
         return api_error(str(e))
