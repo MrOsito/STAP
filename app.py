@@ -2,10 +2,10 @@
 import os
 from flask import Flask, g, session # Added session and g
 from datetime import timedelta
+from whitenoise import WhiteNoise
 
 # Import the new function from api_helpers
 from services.api_helpers import get_user_details_from_session
-
 from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.event_routes import event_bp
@@ -21,7 +21,7 @@ app.register_blueprint(event_bp)
 app.register_blueprint(member_bp) # Ensure this is correctly defined and imported
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-replace-me") # Use a strong secret key
 app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get("SESSION_LIFETIME_MINUTES", 60)))
-
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/', prefix='static/')
 
 # --- Before Request ---
 @app.before_request
